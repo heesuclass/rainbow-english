@@ -1,0 +1,17 @@
+{
+  "name": "Rainbow English Games",
+  "short_name": "레인보우 영어",
+  "description": "6학년 영어 11·12과 게임 모음 - 와이파이 없이도 실행",
+  "lang": "ko",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#fff8ec",
+  "theme_color": "#ffd9ea",
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

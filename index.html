@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#ffd9ea">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="레인보우 영어">
+<title>🌈 Rainbow English Games</title>
+<link rel="stylesheet" href="common.css">
+<style>
+.games{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+.g{border-radius:28px;padding:22px;color:#fff;border:4px solid #fff;text-decoration:none;display:flex;flex-direction:column;gap:8px;box-shadow:0 10px 0 rgba(0,0,0,.08),0 20px 40px rgba(120,90,200,.15);transition:transform .15s;position:relative;overflow:hidden}
+.g:hover{transform:translateY(-4px)}.g:active{transform:translateY(4px)}
+.g .ge{font-size:64px;line-height:1}.g h3{font-size:30px;font-weight:600;text-shadow:0 2px 0 rgba(0,0,0,.12)}.g .k{font-weight:800;opacity:.9}
+.g p{font-size:15.5px;line-height:1.55;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.28)}.g .k{text-shadow:0 1px 2px rgba(0,0,0,.25)}
+.g .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto}.g .tags span{background:#ffffffd0;color:#3b2f5c;border-radius:999px;padding:4px 10px;font-size:13px;font-weight:800}
+.g1{background:linear-gradient(135deg,#8b6cff,#b79bff)}.g2{background:linear-gradient(135deg,#35bde8,#7ddcf5)}.g3{background:linear-gradient(135deg,#ff6f91,#ffa3b8)}
+.g4{background:linear-gradient(135deg,#5a9cff,#8fc1ff)}.g5{background:linear-gradient(135deg,#f59e0b,#ffc04d)}.g6{background:linear-gradient(135deg,#ff8a3d,#ffb347)}.g7{background:linear-gradient(135deg,#f06a4a,#ffa07a)}
+.badge{position:absolute;top:14px;right:14px;background:#fff;color:#ff3d6e;font-weight:900;border-radius:999px;padding:5px 12px;font-size:14px}
+h2.gh{font-family:var(--title);font-weight:800;font-size:28px;margin:8px 0 12px;color:#5b3fd6}
+.sec{margin-top:30px}.sec h2{font-family:var(--title);font-weight:800;font-size:28px;margin-bottom:12px;color:#5b3fd6}
+details.card{margin-top:14px}details summary{cursor:pointer;font-weight:900;font-size:20px;list-style:none}
+details summary::before{content:'▸ ';color:var(--pink)}details[open] summary::before{content:'▾ '}
+.tip{line-height:1.75;font-size:16px;margin-top:10px}.tip b{color:#4a22c9}
+textarea.txt{min-height:170px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:15px}
+table.plan{width:100%;border-collapse:collapse;margin-top:10px;font-size:15.5px}table.plan td,table.plan th{border:1px solid #e3def8;padding:8px 10px;text-align:left}table.plan th{background:#f3efff}
+</style></head><body>
+<div class="wrap" id="app">
+ <div class="topbar"><div class="ttl">🌈 Rainbow English Games</div><span class="pill" id="offst" style="display:none">✅ 오프라인 준비 완료</span><button class="btn sm pink" id="inst" style="display:none">📲 앱 설치</button><button class="icon-btn" onclick="RB.fullscreen()">⛶</button></div>
+ <div class="center" style="gap:8px;margin:4px 0 26px"><h1 class="hero">Let's Play English! 🎮</h1>
+  <p class="sub">6학년 2학기 <b>11과 · 12과</b> 맞춤 게임 · 인터넷이 없어도 실행돼요 · 소리를 켜 주세요 🔊</p></div>
+
+ <h2 class="gh">✨ 단원 맞춤 새 게임</h2>
+ <div class="games" style="margin-bottom:28px">
+  <a class="g g6" href="thinkso.html"><span class="badge">11과</span><div class="ge">🤔</div><h3 class="en">Think So?</h3><div class="k">의견 스와이프 게임</div>
+   <p>"This cake looks soft. What do you think?" 그림을 보고 맞으면 오른쪽 👍 I think so, too. 아니면 왼쪽 👎 I don't think so. → I think it looks ___.</p>
+   <div class="tags"><span>📱 모둠 태블릿 / 📺 TV</span><span>⏱️ 3~4분</span><span>🗣️ 동의·의견</span></div></a>
+  <a class="g g7" href="culture.html"><span class="badge">12과</span><div class="ge">🏯</div><h3 class="en">Culture Guide</h3><div class="k">문화 해설사 미션</div>
+   <p>로봇 관광객 Neo가 묻는 "Do you know anything about jige?"에 영어로 답하고 전시실 12곳 스탬프 모으기. 미스터리 방은 "I have no idea."!</p>
+   <div class="tags"><span>📱 모둠 태블릿</span><span>⏱️ 8~12분</span><span>🧩 문장 만들기·말하기</span></div></a>
+ </div>
+ <h2 class="gh">🎮 기본 게임 <small style="font-size:15px;opacity:.8">(주제에서 Lesson 11 / Lesson 12 / 11+12 복습 선택)</small></h2>
+ <div class="games">
+  <a class="g g2" href="escape.html"><div class="ge">🛸</div><h3 class="en">Escape the UFO</h3><div class="k">영어 방탈출</div>
+   <p>외계인 우주선에 갇혔다! 듣기·철자·문장·기억·빈칸의 5개 방을 풀고 영어 숫자 비밀번호를 모아 탈출. 모둠별 탈출 시간 경쟁.</p>
+   <div class="tags"><span>📱 모둠 태블릿</span><span>⏱️ 7~12분</span><span>🎧 듣기·쓰기</span></div></a>
+  <a class="g g3" href="raid.html"><div class="ge">⚔️</div><h3 class="en">Boss Raid</h3><div class="k">영어 보스 레이드</div>
+   <p>문제를 맞히면 공격, 틀리면 반격! 콤보·크리티컬·아이템으로 3분 안에 보스 3마리 처치. 답하는 사람이 차례로 바뀌어요.</p>
+   <div class="tags"><span>📱 모둠 태블릿</span><span>⏱️ 3~4분/판</span><span>🧠 단어·문장</span></div></a>
+  <a class="g g1" href="spy.html"><div class="ge">🕵️</div><h3 class="en">English Spy</h3><div class="k">영어 스파이(라이어) 게임</div>
+   <p>모두 같은 단어를 받지만 스파이만 몰라요. 영어 힌트 문장을 말하고 스파이를 찾아라! 말하기 연습에 최고.</p>
+   <div class="tags"><span>📱 모둠 태블릿 돌려보기</span><span>⏱️ 5분/판</span><span>🗣️ 말하기</span></div></a>
+  <a class="g g4" href="rain.html"><div class="ge">🌧️</div><h3 class="en">Word Rain</h3><div class="k">영어 단어 소나기</div>
+   <p>떨어지는 단어를 화면 키보드로 쳐서 터뜨려요. 모둠원 60초 릴레이로 모둠 점수 경쟁. '뜻 보고 쓰기' 모드는 철자 시험 대비!</p>
+   <div class="tags"><span>📱 모둠 태블릿 릴레이</span><span>⏱️ 4~6분</span><span>✏️ 철자</span></div></a>
+  <a class="g g5" href="board.html"><div class="ge">📺</div><h3 class="en">Team Battle Board</h3><div class="k">TV 팀 대항전</div>
+   <p>TV에 띄우는 번호판 게임. 영어 미션 + 깜짝 이벤트(뺏기·바꾸기·폭탄)로 끝까지 역전 가능! 태블릿 없이도 OK.</p>
+   <div class="tags"><span>📺 선생님 PC → TV</span><span>⏱️ 10~20분</span><span>🗣️ 말하기·듣기</span></div></a>
+ </div>
+
+ <div class="sec"><h2>👩‍🏫 선생님 코너</h2>
+  <details class="card" open><summary>⭐ 우리반 단어장 만들기 (교과서 단원 단어 넣기)</summary>
+   <div class="tip">한 줄에 하나씩, <b>영어 | 뜻 | 이모지</b> 순서로 써요. 이모지는 비워도 돼요. 문장은 <b>영어 문장 | 뜻</b>.<br>저장하면 모든 게임의 주제 목록 맨 앞에 <b>⭐ 우리반 단어장</b>이 생겨요. (단어 최소 6개, 문장 4개 이상 추천)</div>
+   <div class="grid" style="margin-top:12px">
+    <input class="txt" id="bn" placeholder="단어장 이름 (예: Lesson 9)">
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr))">
+     <textarea class="txt" id="bw" placeholder="doctor | 의사 | 🩺&#10;chef | 요리사 | 👨‍🍳&#10;pilot | 조종사 | ✈️"></textarea>
+     <textarea class="txt" id="bs" placeholder="What do you want to be? | 너는 무엇이 되고 싶니?&#10;I want to be a doctor. | 나는 의사가 되고 싶어."></textarea></div>
+    <div class="row"><button class="btn pink" id="sv">💾 저장</button><button class="btn cyan" id="lk">🔗 태블릿 공유 링크 복사</button><button class="btn white" id="dl">🗑️ 단어장 삭제</button></div>
+    <div class="help">💡 단어장은 기기마다 따로 저장돼요. 태블릿 5대에 똑같이 넣으려면 <b>공유 링크</b>를 복사해서 QR코드로 만들거나 메시지로 보내 열면 자동으로 들어가요. (게임을 인터넷 주소로 열었을 때 사용)</div>
+   </div></details>
+  <details class="card"><summary>📲 태블릿에 앱으로 설치하기</summary>
+   <div class="tip">
+    <b>① 처음 한 번만 인터넷 연결</b> — 핫스팟을 켜고 게임 주소를 열어요. 위쪽에 <b>✅ 오프라인 준비 완료</b>가 보이면 게임 8개와 글꼴이 태블릿에 저장된 거예요.<br>
+    <b>② 홈 화면에 추가</b><br>
+    &nbsp;&nbsp;• 갤럭시탭(크롬/삼성 인터넷): 위의 <b>📲 앱 설치</b> 버튼, 또는 메뉴(⋮) → <b>홈 화면에 추가 / 앱 설치</b><br>
+    &nbsp;&nbsp;• 아이패드(사파리): 공유 버튼 <b>⬆️</b> → <b>홈 화면에 추가</b><br>
+    <b>③ 영어실에서는</b> 홈 화면의 🌈 아이콘을 누르면 와이파이 없이 바로 실행돼요. 주소창 없이 전체 화면으로 떠요.<br>
+    • 게임을 고친 새 버전을 올리면, 다음에 인터넷이 될 때 자동으로 업데이트돼요.
+   </div></details>
+  <details class="card"><summary>📶 태블릿 4~5대 운영 팁</summary>
+   <div class="tip">
+    • 모든 게임은 <b>한 번 열면 인터넷 없이</b> 돌아가요. 핫스팟은 처음 페이지를 열 때만 필요해요.<br>
+    • 더 안전하게: 게임 파일(.html)을 태블릿에 저장해 두면 핫스팟 없이도 열 수 있어요. (같은 폴더에 두어야 🏠 버튼이 작동)<br>
+    • 듣기 문제는 태블릿의 <b>영어 읽어주기(TTS)</b>를 써요. 소리가 안 나면 설정 → 텍스트 음성 변환에서 영어 음성을 받아 주세요.<br>
+    • 모둠 기록은 태블릿 결과 화면을 들고 와서 보여 주거나, TV 대항전 점수판에 선생님이 반영하면 돼요.<br>
+    • 태블릿이 4대뿐이면: 4모둠은 태블릿 게임, 나머지 1모둠은 선생님과 TV 대항전 → 순환!
+   </div></details>
+  <details class="card"><summary>🗓️ 11·12과 차시별 활용 예시</summary>
+   <table class="plan"><tr><th>차시</th><th>지도서 활동</th><th>추천 게임</th></tr>
+    <tr><td>11과 1~2차시</td><td>동의 여부 묻고 답하기 (What do you think? / I think so, too.)</td><td>🤔 Think So? (TV로 전체 → 모둠 태블릿) · 📺 TV 대항전 Lesson 11</td></tr>
+    <tr><td>11과 3~4차시</td><td>의견 말하기 (I think it looks bright.) · 단어</td><td>🕵️ English Spy (It looks ___.) · 🌧️ Word Rain</td></tr>
+    <tr><td>11과 5~6차시</td><td>토론 글 Are Animals Happy in Zoos? · 정리</td><td>🛸 방탈출 · ⚔️ Boss Raid (Lesson 11)</td></tr>
+    <tr><td>12과 1~2차시</td><td>Do you know anything about ~? / I have no idea.</td><td>🏯 Culture Guide · 📺 TV 대항전 Lesson 12</td></tr>
+    <tr><td>12과 3~4차시</td><td>전통문화·단어 (traditional, carry, holiday…)</td><td>🕵️ English Spy · 🌧️ Word Rain (Lesson 12)</td></tr>
+    <tr><td>12과 5~6차시</td><td>보고서 Art for Everyone · 단원 정리</td><td>🛸 방탈출 · ⚔️ Boss Raid (Lesson 11+12 복습)</td></tr></table></details>
+ </div>
+</div>
+<script src="common.js"></script>
+<script>
+const {$,toast,loadCustom,encodeBank}=RB;
+let deferred=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;$('#inst').style.display=''});
+$('#inst').onclick=async()=>{if(!deferred)return;deferred.prompt();const r=await deferred.userChoice;if(r.outcome==='accepted')toast('🎉 홈 화면에 설치됐어요!');deferred=null;$('#inst').style.display='none'};
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){navigator.serviceWorker.ready.then(()=>caches.keys()).then(k=>{if(k.some(x=>x.startsWith('rainbow-v')))$('#offst').style.display=''}).catch(()=>{})}
+function parse(){
+  const words=$('#bw').value.split('\n').map(l=>l.split('|').map(x=>x.trim())).filter(a=>a[0]).map(a=>({en:a[0],ko:a[1]||'',e:a[2]||'⭐'}));
+  const sents=$('#bs').value.split('\n').map(l=>l.split('|').map(x=>x.trim())).filter(a=>a[0]).map(a=>({en:a[0],ko:a[1]||''}));
+  return {name:$('#bn').value.trim()||'Our Class',words,sents};
+}
+const c=loadCustom();
+if(c){$('#bn').value=c.name||'';$('#bw').value=c.words.map(w=>`${w.en} | ${w.ko} | ${w.e}`).join('\n');$('#bs').value=(c.sents||[]).map(s=>`${s.en} | ${s.ko}`).join('\n')}
+$('#sv').onclick=()=>{const b=parse();if(b.words.length<6){toast('단어를 6개 이상 넣어 주세요');return}
+  try{localStorage.setItem('rb_custom',JSON.stringify(b));RB.sfx('ok');toast('⭐ 저장했어요! 게임 주제에서 골라 보세요')}catch(e){toast('저장할 수 없는 환경이에요')}};
+$('#dl').onclick=()=>{localStorage.removeItem('rb_custom');$('#bw').value=$('#bs').value=$('#bn').value='';toast('단어장을 지웠어요')};
+$('#lk').onclick=async()=>{const b=parse();if(b.words.length<6){toast('단어를 6개 이상 넣어 주세요');return}
+  const url=location.href.split('#')[0]+'#bank='+encodeURIComponent(encodeBank(b));
+  try{await navigator.clipboard.writeText(url);toast('🔗 링크를 복사했어요!')}catch(e){prompt('이 링크를 복사하세요',url)}};
+</script></body></html>

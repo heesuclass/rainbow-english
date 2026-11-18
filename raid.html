@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#ffd9ea">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="레인보우 영어">
+<title>⚔️ Boss Raid - 영어 보스 레이드</title>
+<link rel="stylesheet" href="common.css">
+<style>
+body{background:radial-gradient(600px 460px at 8% 0%,#ffe0ec 0%,transparent 70%),radial-gradient(640px 500px at 100% 100%,#ece3ff 0%,transparent 70%),#fff6fa;background-attachment:fixed}
+.arena{display:grid;grid-template-columns:1fr;gap:14px}
+.bossbox{position:relative;border-radius:28px;padding:16px 18px;background:linear-gradient(180deg,#fff,#fff4f8);border:3px solid #ffd6e6;overflow:hidden;box-shadow:0 8px 0 #ffd6e6}
+.bossrow{display:flex;align-items:center;gap:18px}
+.boss{font-size:clamp(80px,13vw,130px);line-height:1;filter:drop-shadow(0 8px 0 #0002);transition:transform .1s}
+.boss.hit{animation:bhit .35s}
+@keyframes bhit{0%{transform:translateX(0) scale(1)}25%{transform:translateX(14px) scale(.92) rotate(6deg);filter:brightness(3)}60%{transform:translateX(-8px)}100%{transform:none}}
+.boss.dead{animation:bdead .9s forwards}
+@keyframes bdead{to{transform:scale(0) rotate(360deg);opacity:0}}
+.hpbar{height:26px;border-radius:13px;background:#f1e8f5;overflow:hidden;border:2px solid #f3d6e6;position:relative}
+.hpbar i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#ff3d6e,#ffb020);transition:width .35s;border-radius:11px}
+.hpbar b{position:absolute;inset:0;display:grid;place-items:center;font-size:14px;font-weight:900;text-shadow:0 1px 2px #000}
+.stats{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.hearts{font-size:26px;letter-spacing:2px}
+.combo{font-weight:900;font-size:20px;color:#ff7a00}
+.items{display:flex;gap:8px}.items button{width:54px;height:54px;border-radius:14px;border:3px solid var(--yellow);background:#fff9df;font-size:28px;cursor:pointer}
+.dmg{position:absolute;font-weight:900;font-size:44px;color:#ff3d6e;text-shadow:0 3px 0 #fff,0 0 14px #fff;pointer-events:none;animation:dmg 1s forwards;z-index:5}
+.dmg.crit{font-size:60px;color:var(--yellow)}
+@keyframes dmg{0%{opacity:0;transform:translateY(10px) scale(.5)}20%{opacity:1;transform:translateY(0) scale(1.2)}100%{opacity:0;transform:translateY(-70px)}}
+.flash{position:fixed;inset:0;background:#ff6680;opacity:0;pointer-events:none;z-index:400}
+.flash.on{animation:fl .4s}@keyframes fl{0%{opacity:.45}100%{opacity:0}}
+.qbox{border-radius:28px;padding:18px;background:#fff;color:var(--ink);border:3px solid var(--line);box-shadow:0 8px 0 #eadffc}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.qtext{font-size:clamp(22px,3.6vw,34px);font-weight:900;text-align:center;margin:6px 0 14px;line-height:1.25}
+.turn{background:#f3efff;color:#4a22c9;border-radius:999px;padding:6px 14px;font-weight:900}
+.time{font-weight:900;font-size:24px;color:#1b8fb3;font-variant-numeric:tabular-nums}
+.stepper{display:flex;align-items:center;gap:14px}.stepper b{font-size:40px;min-width:60px;text-align:center}
+table.lb{width:100%;border-collapse:collapse;font-size:18px}table.lb td{padding:8px;border-bottom:1px solid #eee}
+.bossbox b.en{color:#c2185b}
+</style></head><body>
+<div class="flash" id="flash"></div>
+<div class="wrap" id="app"></div>
+<script src="common.js"></script>
+<script>
+const {$,sfx,speak,shuffle,sample,pick,toast,confetti,getTheme,themePicker,lastTheme,esc,fmtTime,misspell}=RB;
+const BOSSES=[{e:'🐙',n:'Octo Monster',hp:200},{e:'🐲',n:'Fire Dragon',hp:350},{e:'👾',n:'Glitch King',hp:500}];
+const ITEMS={'❤️':'하트 +1','💣':'폭탄 60 데미지','⏰':'시간 +20초'};
+const app=$('#app');
+let G={theme:lastTheme(),team:'',mem:4},tm=null;
+function shell(html){app.innerHTML='';app.appendChild(RB.topbar('⚔️ Boss Raid','영어 보스 레이드'));const d=document.createElement('div');d.innerHTML=html;app.appendChild(d);return d}
+function intro(){
+  shell(`<div class="center" style="gap:8px;margin:4px 0 18px"><div class="row" style="font-size:80px;gap:20px"><span class="float">🐙</span><span class="float" style="animation-delay:.4s">🐲</span><span class="float" style="animation-delay:.8s">👾</span></div>
+   <h1 class="hero">BOSS RAID</h1><p class="sub">영어 문제를 맞히면 공격! 틀리면 보스의 반격!<br>콤보를 쌓아 <b>크리티컬</b>과 <b>아이템</b>을 얻고, 3분 안에 보스 3마리를 쓰러뜨리세요.</p></div>
+   <div class="card grid">
+     <div class="grid" style="grid-template-columns:1fr auto;align-items:center"><b style="font-size:20px">🛡️ 모둠 이름</b><span></span>
+       <input class="txt" id="tn" placeholder="예) 3모둠 Dragon Slayers" maxlength="16" value="${esc(G.team)}">
+       <div class="stepper"><button class="btn sm white" id="m">−</button><b id="nv">${G.mem}</b><button class="btn sm white" id="p">＋</button></div></div>
+     <div class="help" style="margin-top:-6px">오른쪽 숫자 = 모둠 인원. 문제마다 답하는 사람이 차례로 바뀌어요!</div>
+     <b style="font-size:20px">📚 단어 주제</b><div id="tp"></div>
+     <button class="btn big pink" id="go">⚔️ 레이드 시작!</button></div>`);
+  $('#m').onclick=()=>{G.mem=Math.max(1,G.mem-1);$('#nv').textContent=G.mem};$('#p').onclick=()=>{G.mem=Math.min(8,G.mem+1);$('#nv').textContent=G.mem};
+  themePicker($('#tp'),id=>G.theme=id,G.theme);
+  $('#go').onclick=()=>{G.team=$('#tn').value.trim()||'Raid Team';start()};
+}
+function start(){
+  G.t=getTheme(G.theme);G.bi=0;G.hp=BOSSES[0].hp;G.hearts=5;G.combo=0;G.best=0;G.dmg=0;G.items=[];G.left=180;G.turn=0;G.correct=0;G.total=0;G.over=false;
+  render();clearInterval(tm);tm=setInterval(()=>{if(G.over)return;G.left--;const el=$('#tm');if(el)el.textContent='⏳ '+fmtTime(G.left);if(G.left<=10&&G.left>0)sfx('tick');if(G.left<=0)finish(false)},1000);
+  nextQ();
+}
+function render(){
+  const B=BOSSES[G.bi];
+  shell(`<div class="arena"><div class="bossbox" id="bb"><div class="bossrow"><div class="boss" id="boss">${B.e}</div>
+     <div style="flex:1"><div class="row" style="justify-content:space-between"><b class="en" style="font-size:24px">Lv.${G.bi+1} ${B.n}</b><span class="time" id="tm">⏳ ${fmtTime(G.left)}</span></div>
+     <div class="hpbar" style="margin-top:8px"><i id="hpi"></i><b id="hpt"></b></div>
+     <div class="stats"><span class="hearts" id="hr"></span><span class="combo" id="cb"></span><span style="flex:1"></span><div class="items" id="it"></div></div></div></div></div>
+     <div class="qbox" id="qb"></div></div>`);
+  upd();
+}
+function upd(){
+  const B=BOSSES[G.bi];$('#hpi').style.width=Math.max(0,G.hp/B.hp*100)+'%';$('#hpt').textContent=`${Math.max(0,G.hp)} / ${B.hp}`;
+  $('#hr').textContent='❤️'.repeat(G.hearts)+'🖤'.repeat(5-G.hearts);
+  $('#cb').textContent=G.combo>=2?`🔥 ${G.combo} COMBO ×${mult()}`:'';
+  $('#it').innerHTML=G.items.map((x,i)=>`<button data-i="${i}" title="${ITEMS[x]}">${x}</button>`).join('');
+  document.querySelectorAll('#it button').forEach(b=>b.onclick=()=>useItem(+b.dataset.i));
+}
+const mult=()=>G.combo<3?1:G.combo<5?1.5:G.combo<8?2:3;
+function makeQ(){
+  const T=G.t,w=pick(T.words),others=n=>sample(T.words.filter(x=>x.en!==w.en),n);
+  if(T.qa&&T.qa.length>=4&&Math.random()<.3){const [qq,aa]=pick(T.qa);const os=sample([...new Set(T.qa.map(x=>x[1]).filter(x=>x!==aa))],3);
+    return{ty:'qa',label:'💬 대화 완성하기',q:`<div class="en" style="font-size:.72em;text-align:left;display:inline-block;line-height:1.5">${esc(qq).replace(/\n/g,'<br>')}</div>`,opts:shuffle([aa,...os]).map(o=>({h:`<span class="en" style="font-size:.85em">${esc(o)}</span>`,ok:o===aa})),after:qq.replace(/\(.*?\)/g,'').replace('___',aa).replace(/[AB]: /g,'')}}
+  const types=['listen','pic2en','en2ko','spell','sent','sentListen'];
+  let ty=pick(types);
+  if(ty==='spell'&&misspell(w.en).length<3)ty='pic2en';
+  if((ty==='sent'||ty==='sentListen')&&T.sents.length<4)ty='pic2en';
+  if(ty==='listen')return{ty,label:'🎧 듣고 고르기',q:`<button class="btn sm pink" id="rp">🔊 다시 듣기</button>`,say:w.en,opts:shuffle([w,...others(3)]).map(o=>({h:`<span class="oe">${o.e}</span><span style="font-size:16px">${esc(o.ko)}</span>`,ok:o.en===w.en}))};
+  if(ty==='pic2en')return{ty,label:'🖼️ 그림 보고 영어 고르기',q:`<div style="font-size:72px">${w.e}</div><div style="font-size:20px;color:var(--muted)">${esc(w.ko)}</div>`,opts:shuffle([w,...others(3)]).map(o=>({h:`<span class="en">${esc(o.en)}</span>`,ok:o.en===w.en})),after:w.en};
+  if(ty==='en2ko')return{ty,label:'🔤 뜻 고르기',q:`<span class="en">${esc(w.en)}</span>`,say:w.en,opts:shuffle([w,...others(3)]).map(o=>({h:esc(o.ko),ok:o.en===w.en}))};
+  if(ty==='spell'){const m=sample(misspell(w.en),3);return{ty,label:'✏️ 바른 철자 찾기',q:`<div style="font-size:72px">${w.e}</div><div style="font-size:20px;color:var(--muted)">${esc(w.ko)}</div>`,opts:shuffle([w.en,...m]).map(o=>({h:`<span class="en">${esc(o)}</span>`,ok:o===w.en})),after:w.en}}
+  const s=pick(T.sents),os=sample(T.sents.filter(x=>x.en!==s.en),3);
+  if(ty==='sent')return{ty,label:'💬 알맞은 영어 문장 고르기',q:`🇰🇷 ${esc(s.ko)}`,opts:shuffle([s,...os]).map(o=>({h:`<span class="en" style="font-size:.8em">${esc(o.en)}</span>`,ok:o.en===s.en})),after:s.en};
+  return{ty,label:'🎧 문장 듣고 뜻 고르기',q:`<button class="btn sm pink" id="rp">🔊 다시 듣기</button>`,say:s.en,opts:shuffle([s,...os]).map(o=>({h:`<span style="font-size:.8em">${esc(o.ko)}</span>`,ok:o.en===s.en}))};
+}
+function nextQ(){
+  if(G.over)return;const Q=makeQ();G.q=Q;G.qt=Date.now();G.turn=G.turn%G.mem+1;
+  $('#qb').innerHTML=`<div class="qhead"><span class="turn">🎯 ${G.mem>1?'Player '+G.turn+' 차례':'도전!'}</span><b style="color:var(--muted)">${Q.label}</b></div>
+    <div class="qtext">${Q.q}</div><div class="opt-grid">${Q.opts.map((o,i)=>`<button class="opt c${i}" data-i="${i}">${o.h}</button>`).join('')}</div>`;
+  if(Q.say){speak(Q.say);const r=$('#rp');if(r)r.onclick=()=>speak(Q.say)}
+  let done=false;
+  document.querySelectorAll('#qb .opt').forEach(b=>b.onclick=()=>{if(done||G.over)return;done=true;const o=Q.opts[+b.dataset.i];G.total++;
+    if(o.ok){b.classList.add('right');G.correct++;attack();if(Q.after)speak(Q.after)}
+    else{b.classList.add('wrong');Q.opts.forEach((x,i)=>{if(x.ok)document.querySelectorAll('#qb .opt')[i].classList.add('right')});hurt()}
+    setTimeout(()=>{if(!G.over&&!G.switching)nextQ()},o.ok?650:1300)});
+}
+function popDmg(n,crit){const bb=$('#bb');if(!bb)return;const d=document.createElement('div');d.className='dmg'+(crit?' crit':'');d.textContent=(crit?'CRITICAL! ':'-')+n;
+  d.style.left=(20+Math.random()*50)+'%';d.style.top='20%';bb.appendChild(d);setTimeout(()=>d.remove(),1000)}
+function attack(extra){
+  let dmg;let crit=false;
+  if(extra){dmg=extra}else{G.combo++;G.best=Math.max(G.best,G.combo);dmg=20*mult();if((Date.now()-G.qt)<4000)dmg+=5;if(Math.random()<.15){dmg*=2;crit=true}}
+  dmg=Math.round(dmg);G.hp-=dmg;G.dmg+=dmg;sfx(crit?'crit':'hit');popDmg(dmg,crit);
+  const b=$('#boss');b.classList.remove('hit');void b.offsetWidth;b.classList.add('hit');
+  if(!extra&&G.combo>0&&G.combo%4===0&&G.items.length<3){const it=pick(Object.keys(ITEMS));G.items.push(it);setTimeout(()=>{sfx('event');toast(`🎁 아이템 획득! ${it} ${ITEMS[it]}`)},300)}
+  upd();if(G.hp<=0)bossDown();
+}
+function hurt(){G.combo=0;G.hearts--;sfx('bad');const f=$('#flash');f.classList.remove('on');void f.offsetWidth;f.classList.add('on');
+  const bb=$('#bb');bb.classList.remove('shake');void bb.offsetWidth;bb.classList.add('shake');upd();if(G.hearts<=0)setTimeout(()=>finish(false),700)}
+function useItem(i){const it=G.items.splice(i,1)[0];sfx('pop');
+  if(it==='❤️'){G.hearts=Math.min(5,G.hearts+1);toast('❤️ 하트 회복!')}
+  if(it==='⏰'){G.left+=20;toast('⏰ 시간 +20초!');$('#tm').textContent='⏳ '+fmtTime(G.left)}
+  upd();if(it==='💣'){toast('💣 BOOM!');attack(60)}}
+function bossDown(){
+  G.switching=true;const b=$('#boss');b.classList.add('dead');sfx('win');confetti(1500);
+  setTimeout(()=>{G.bi++;if(G.bi>=BOSSES.length){G.switching=false;return finish(true)}
+    G.hp=BOSSES[G.bi].hp;G.left+=15;render();toast(`⚠️ 다음 보스 등장! Lv.${G.bi+1} ${BOSSES[G.bi].n} (+15초)`);G.switching=false;nextQ()},1100);
+}
+function finish(win){
+  if(G.over)return;G.over=true;clearInterval(tm);
+  const score=G.dmg+(win?G.hearts*100+G.left*5:0)+G.best*10;
+  const grade=score>=2000?'S':score>=1400?'A':score>=800?'B':'C';
+  const lb=RB.board('rb_raid');lb.push({team:G.team,s:score,g:grade});lb.sort((a,b)=>b.s-a.s);RB.saveBoard('rb_raid',lb);
+  if(win){confetti(4000);speak('Victory! You are the champions!')}else sfx('lose');
+  shell(`<div class="card center pop" style="gap:10px;max-width:760px;margin:0 auto">
+   <div class="big-emoji">${win?'🏆':'💀'}</div><h1 class="hero" style="color:#4a22c9;text-shadow:none">${win?'VICTORY!':'GAME OVER'}</h1>
+   <div style="font-size:22px;font-weight:800">🛡️ ${esc(G.team)}</div>
+   <div class="row" style="justify-content:center;gap:24px"><div><div class="en" style="font-size:80px;font-weight:900;color:#ff5da2;line-height:1">${grade}</div><div class="help">등급</div></div>
+     <div><div class="en" style="font-size:56px;font-weight:900;line-height:1">${score}</div><div class="help">점수</div></div></div>
+   <div class="help">처치한 보스 ${G.bi}/3 · 정답 ${G.correct}/${G.total} · 최고 콤보 ${G.best} · 총 데미지 ${G.dmg}</div>
+   <p style="font-weight:800">📺 선생님께 점수를 보여 주세요!</p>
+   <table class="lb">${lb.slice(0,5).map((r,i)=>`<tr><td>${['🥇','🥈','🥉','4','5'][i]}</td><td><b>${esc(r.team)}</b></td><td>${r.g}</td><td style="text-align:right"><b>${r.s}</b></td></tr>`).join('')}</table>
+   <div class="row" style="justify-content:center"><button class="btn big pink" id="again">🔁 다시 도전</button><button class="btn white" id="rs">🗑️ 기록 지우기</button></div></div>`);
+  $('#again').onclick=intro;$('#rs').onclick=()=>{RB.saveBoard('rb_raid',[]);toast('기록을 지웠어요');intro()};
+}
+intro();
+</script></body></html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#ffd9ea">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="레인보우 영어">
+<title>🕵️ English Spy - 영어 스파이 게임</title>
+<link rel="stylesheet" href="common.css">
+<style>
+.ani{font-size:90px;line-height:1}
+.secret{min-height:360px}
+.spybg{background:linear-gradient(135deg,#4b3a8f,#7b5cff)!important;color:#fff!important}.spybg h1.hero{color:#fff;text-shadow:3px 4px 0 #2d2160}.spybg .sub{color:#efeaff}
+.hint-list{display:grid;gap:10px;margin-top:10px}
+.hint-list div{background:#f3efff;border-radius:14px;padding:12px 16px;font-size:20px;font-weight:800;color:#4a22c9}
+.ring{width:150px;height:150px;border-radius:50%;display:grid;place-items:center;font-size:44px;font-weight:900;background:conic-gradient(var(--pink) var(--p,100%),#f1eaff 0)}
+.ring span{width:120px;height:120px;border-radius:50%;background:#fff;color:#5b3fd6;display:grid;place-items:center}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}
+.pbtn{background:#fff;color:var(--ink);border:3px solid var(--line);border-radius:18px;padding:14px;font:inherit;font-weight:900;font-size:18px;box-shadow:0 6px 0 #eadffc;cursor:pointer}
+.pbtn .a{font-size:46px;display:block}
+.pbtn.on{background:var(--pink);color:#fff;box-shadow:0 6px 0 #e0478d;border-color:var(--pink)}
+.score{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.score .pill{font-size:17px}
+.stepper{display:flex;align-items:center;gap:14px}
+.stepper b{font-size:40px;min-width:60px;text-align:center;color:var(--ink)}
+</style></head><body>
+<div class="wrap" id="app"></div>
+<script src="common.js"></script>
+<script>
+const {$,sfx,speak,shuffle,sample,pick,toast,confetti,getTheme,themePicker,lastTheme,esc}=RB;
+const ANI=['🐯','🐰','🦊','🐼','🐸','🐧','🐨','🦁'];
+const app=$('#app');
+let S={n:4,theme:lastTheme(),scores:[],round:0};
+function shell(html){app.innerHTML='';app.appendChild(RB.topbar('🕵️ English Spy','영어 스파이 찾기'));const d=document.createElement('div');d.innerHTML=html;app.appendChild(d);return d}
+
+function setup(){
+  shell(`<div class="center" style="margin:6px 0 18px"><div class="big-emoji float">🕵️</div><h1 class="hero">Who is the SPY?</h1>
+   <p class="sub" style="margin-top:8px">모두 같은 영어 단어를 받지만, <b>스파이</b>만 단어를 몰라요!<br>영어로 힌트를 말하고, 스파이를 찾아내세요.</p></div>
+   <div class="card grid">
+     <div class="row" style="justify-content:space-between"><b style="font-size:20px">👥 모둠 인원</b>
+       <div class="stepper"><button class="btn sm white" id="m">−</button><b id="nv">${S.n}</b><button class="btn sm white" id="p">＋</button></div></div>
+     <b style="font-size:20px">📚 단어 주제</b><div id="tp"></div>
+     <div class="help">💡 태블릿 1대를 모둠 안에서 돌려 가며 봐요. 내 카드는 다른 친구가 못 보게!</div>
+     <button class="btn big pink" id="go">🎮 게임 시작</button>
+   </div>`);
+  $('#m').onclick=()=>{S.n=Math.max(3,S.n-1);$('#nv').textContent=S.n;sfx('click')};
+  $('#p').onclick=()=>{S.n=Math.min(8,S.n+1);$('#nv').textContent=S.n;sfx('click')};
+  themePicker($('#tp'),id=>S.theme=id,S.theme);
+  $('#go').onclick=()=>{S.scores=Array(S.n).fill(0);S.round=0;newRound()};
+}
+function newRound(){
+  const t=getTheme(S.theme);
+  S.round++;S.word=pick(t.words);S.spy=Math.random()*S.n|0;S.t=t;S.cur=0;
+  passScreen();
+}
+function passScreen(){
+  const i=S.cur;
+  shell(`<div class="center" style="min-height:70vh;gap:18px"><div class="pill">Round ${S.round} · 카드 확인 ${i+1}/${S.n}</div>
+    <div class="ani pop">${ANI[i]}</div><h1 class="hero">Player ${i+1}</h1>
+    <p class="sub">태블릿을 <b>Player ${i+1}</b>에게 주세요.<br>다른 친구들은 화면을 보지 마세요! 🙈</p>
+    <button class="btn big cyan" id="see">👀 내 카드 보기</button></div>`);
+  $('#see').onclick=()=>{sfx('flip');showCard()};
+}
+function showCard(){
+  const i=S.cur,isSpy=i===S.spy,w=S.word;
+  const body=isSpy?
+   `<div class="card secret center spybg pop" style="gap:12px"><div class="big-emoji">🕵️</div><h1 class="hero en">You are the SPY!</h1>
+     <p class="sub">주제는 <b>${esc(S.t.ko)}</b> (${esc(S.t.name)})</p><p class="sub">친구들의 힌트를 잘 듣고 들키지 않게 힌트를 말하세요.<br>잡히면 단어를 맞혀서 역전할 수 있어요!</p></div>`:
+   `<div class="card secret center pop" style="gap:10px"><div class="pill" style="background:#f3efff;color:#4a22c9">🔒 비밀 단어</div><div class="big-emoji">${w.e}</div>
+     <h1 class="hero en" style="color:#4a22c9;text-shadow:none">${esc(w.en)}</h1><p style="font-size:20px;color:var(--muted);font-weight:700">${esc(w.ko)}</p>
+     <button class="btn sm purple" id="say">🔊 발음 듣기</button></div>`;
+  shell(`<div style="max-width:620px;margin:0 auto">${body}<div class="center" style="margin-top:18px"><button class="btn big" id="ok">✅ 확인했어요! 화면 가리기</button></div></div>`);
+  const sb=$('#say');if(sb)sb.onclick=()=>speak(w.en);
+  $('#ok').onclick=()=>{sfx('click');S.cur++;if(S.cur<S.n)passScreen();else talk()};
+}
+function talk(){
+  const order=shuffle([...Array(S.n).keys()]);let k=0,lap=1,left=25,timer=null;
+  const hints=[...(S.t.hints||[]),'It is ___.','I like / don\'t like it.'].slice(0,5);
+  shell(`<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
+   <div class="glass center" style="gap:14px"><div class="pill" id="lap">힌트 라운드 1/2</div>
+     <div class="ani" id="who"></div><h1 class="hero" id="wn"></h1><p class="sub">영어로 힌트를 <b>한 문장</b> 말해요!</p>
+     <div class="ring" id="ring"><span id="sec">25</span></div>
+     <div class="row" style="justify-content:center"><button class="btn green" id="nx">다음 사람 ▶</button><button class="btn pink" id="vote">🗳️ 바로 투표</button></div></div>
+   <div class="card"><b style="font-size:20px">💬 힌트 문장 도우미</b><div class="hint-list en">${hints.map(h=>`<div>${esc(h)}</div>`).join('')}</div>
+     <p class="help" style="margin-top:12px">⚠️ 단어를 그대로 말하면 안 돼요!<br>⚠️ 너무 쉬운 힌트는 스파이에게 정답을 알려줘요.</p></div></div>`);
+  function show(){const p=order[k];$('#who').textContent=ANI[p];$('#wn').textContent='Player '+(p+1);$('#lap').textContent=`힌트 라운드 ${lap}/2 · ${k+1}/${S.n}`;left=25;upd();sfx('pop')}
+  function upd(){$('#sec').textContent=left;$('#ring').style.setProperty('--p',(left/25*100)+'%')}
+  function next(){k++;if(k>=S.n){k=0;lap++;if(lap>2){clearInterval(timer);vote();return}}show()}
+  timer=setInterval(()=>{left--;if(left<=5&&left>0)sfx('tick');if(left<=0){next()}else upd()},1000);
+  $('#nx').onclick=next;$('#vote').onclick=()=>{clearInterval(timer);vote()};show();
+}
+function vote(){
+  let sel=-1;
+  shell(`<div class="center" style="gap:10px;margin-bottom:16px"><div class="big-emoji">🗳️</div><h1 class="hero">Who is the SPY?</h1>
+    <p class="sub">"I think Player ___ is the spy!" 라고 영어로 말하고,<br>가장 많이 지목된 친구를 골라요.</p></div>
+    <div class="pgrid" id="pg">${[...Array(S.n).keys()].map(i=>`<button class="pbtn" data-i="${i}"><span class="a">${ANI[i]}</span>Player ${i+1}</button>`).join('')}</div>
+    <div class="center" style="margin-top:20px"><button class="btn big pink" id="cf" disabled>🔍 정체 공개!</button></div>`);
+  document.querySelectorAll('.pbtn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.pbtn').forEach(x=>x.classList.remove('on'));b.classList.add('on');sel=+b.dataset.i;$('#cf').disabled=false;sfx('click')});
+  $('#cf').onclick=()=>reveal(sel);
+}
+function reveal(sel){
+  const caught=sel===S.spy;
+  if(!caught){sfx('lose');return end(false,`스파이는 <b>Player ${S.spy+1} ${ANI[S.spy]}</b> 였어요! 😱`)}
+  sfx('win');
+  const opts=shuffle([S.word,...sample(S.t.words.filter(w=>w.en!==S.word.en),5)]);
+  shell(`<div class="center" style="gap:10px;margin-bottom:16px"><div class="big-emoji pop">🚨</div><h1 class="hero">Spy Caught!</h1>
+    <p class="sub">Player ${S.spy+1} ${ANI[S.spy]} 가 스파이였어요!<br><b>마지막 찬스:</b> 스파이는 비밀 단어를 골라 보세요. 맞히면 스파이 역전승!</p></div>
+    <div class="opt-grid">${opts.map((w,i)=>`<button class="opt c${i%4} en" data-w="${esc(w.en)}">${esc(w.en)}</button>`).join('')}</div>`);
+  document.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+    const ok=b.dataset.w===S.word.en;
+    if(ok){sfx('lose');end(false,`스파이가 단어 <b>${esc(S.word.en)}</b>를 맞혔어요! 🕵️ 역전승!`)}
+    else{end(true,`스파이가 단어를 못 맞혔어요. 정답은 <b>${esc(S.word.en)}</b>!`)}
+  });
+}
+function end(citizensWin,msg){
+  if(citizensWin){confetti();sfx('win');S.scores=S.scores.map((s,i)=>i===S.spy?s:s+1)}else{S.scores[S.spy]+=3}
+  shell(`<div class="card center pop" style="gap:14px;max-width:720px;margin:0 auto">
+   <div class="big-emoji">${citizensWin?'🎉':'🕵️'}</div><h1 class="hero" style="color:#4a22c9;text-shadow:none">${citizensWin?'Citizens Win!':'Spy Wins!'}</h1>
+   <p style="font-size:19px">${msg}</p>
+   <div style="font-size:60px">${S.word.e}</div><div class="en" style="font-size:30px;font-weight:900">${esc(S.word.en)} <small style="color:var(--muted)">${esc(S.word.ko)}</small></div>
+   <button class="btn sm purple" id="say">🔊 다같이 따라 말하기</button>
+   <hr style="width:100%;border:0;border-top:2px dashed #e3def8">
+   <b>🏆 점수 (시민 승리 +1 / 스파이 승리 +3)</b>
+   <div class="score">${S.scores.map((s,i)=>`<span class="pill" style="background:#f3efff;color:#4a22c9">${ANI[i]} P${i+1}: ${s}</span>`).join('')}</div>
+   <div class="row" style="justify-content:center"><button class="btn big green" id="nr">▶ 다음 라운드</button><button class="btn white" id="st">⚙️ 설정</button></div></div>`);
+  $('#say').onclick=()=>speak(S.word.en);$('#nr').onclick=newRound;$('#st').onclick=setup;
+}
+setup();
+</script></body></html>

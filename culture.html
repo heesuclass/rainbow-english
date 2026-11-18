@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#ffd9ea">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="레인보우 영어">
+<title>🏯 Culture Guide - 12과 문화 해설사 미션</title>
+<link rel="stylesheet" href="common.css">
+<style>
+body{background:radial-gradient(600px 460px at 8% 0%,#ffe4d6 0%,transparent 70%),radial-gradient(640px 500px at 100% 100%,#e3f6e9 0%,transparent 70%),#fffaf0;background-attachment:fixed}
+.hud{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}.hud .pill{font-size:18px}
+.map{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
+.ex{border:0;border-radius:24px;padding:16px 10px;font:inherit;cursor:pointer;background:#fff;color:var(--ink);box-shadow:0 7px 0 #f1dcc7;border:3px solid #f6e6d3;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;min-height:170px;justify-content:center}
+.ex .e{font-size:64px;line-height:1}.ex b{font-size:20px}.ex small{color:var(--muted);font-weight:700}
+.ex.done{background:#fff7d6}.ex.done::after{content:'✅';position:absolute;top:8px;right:10px;font-size:30px}
+.ex.mys .e{filter:blur(5px)}
+.ex .zone{position:absolute;top:10px;left:12px;font-size:12px;font-weight:900;background:#f3efff;color:#4a22c9;border-radius:999px;padding:3px 8px}
+.room{background:#fff;color:var(--ink);border-radius:28px;padding:22px;border:3px solid #f6e6d3;box-shadow:0 10px 0 #f1dcc7}
+.visitor{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px}
+.visitor .av{font-size:64px;line-height:1}
+.vb{background:#fff;border:3px solid #ffd23f;border-radius:20px;padding:14px 18px;font-size:clamp(20px,2.8vw,28px);font-weight:900;flex:1}
+.vb small{display:block;font-size:14px;color:var(--muted);font-weight:700}
+.steps{display:flex;gap:8px;justify-content:center;margin-bottom:12px}.steps span{padding:6px 12px;border-radius:999px;background:#eee;font-weight:800;font-size:14px}.steps span.on{background:var(--pink);color:#fff}.steps span.ok{background:var(--green);color:#053524}
+.answer{min-height:76px;border-radius:16px;background:#f3efff;border:3px dashed #c9bdf7;display:flex;flex-wrap:wrap;gap:8px;padding:10px;align-items:center;justify-content:center;margin:14px 0}
+.tiles{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.tile{min-height:56px;padding:0 16px;border:0;border-radius:14px;background:#fff;color:var(--ink);font:inherit;font-weight:900;font-size:22px;box-shadow:0 5px 0 #c9bdf7;cursor:pointer;border:2px solid #e3def8}
+.tile.used{visibility:hidden}
+.speak{font-size:clamp(26px,4vw,44px);font-weight:900;color:#4a22c9;text-align:center;line-height:1.3;margin:10px 0}
+.cert{background:linear-gradient(135deg,#fff8e1,#fff);border:10px double #d9a700;border-radius:24px;padding:28px;color:var(--ink);text-align:center;max-width:780px;margin:0 auto}
+.stamps{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;font-size:40px}
+h1.hero{color:#c2410c;text-shadow:3px 4px 0 #ffe0c7}.ex b{font-family:'NanumSquareRound','Fredoka','Nanum Gothic',sans-serif;font-weight:600}
+</style></head><body>
+<div class="wrap" id="app"></div>
+<script src="common.js"></script>
+<script>
+const {$,sfx,speak,shuffle,sample,pick,toast,confetti,esc,fmtTime}=RB;
+// key, picture, Korean, answer sentence, zone, known(true) / mystery(false: 'No, I don't. I have no idea.' then explanation)
+const EX=[
+ {k:'jige',e:'🎒',ko:'지게',a:"Yes, I do. It's a traditional Korean carrier.",z:'Korean Culture',tip:'You can carry heavy things with it.'},
+ {k:'gat',e:'🎩',ko:'갓',a:"Yes, I do. It's a traditional Korean hat.",z:'Korean Culture'},
+ {k:'hanok',e:'🏠',ko:'한옥',a:"Yes, I do. It's a traditional Korean house.",z:'Korean Culture'},
+ {k:'pansori',e:'🎤',ko:'판소리',a:"Yes, I do. It's traditional Korean music.",z:'Korean Culture'},
+ {k:'minhwa',e:'🖼️',ko:'민화',a:"Yes, I do. It's a traditional Korean painting.",z:'Korean Culture'},
+ {k:'yunnori',e:'🎲',ko:'윷놀이',a:"Yes, I do. It's a traditional Korean board game.",z:'Korean Culture'},
+ {k:'tteokguk',e:'🍲',ko:'떡국',a:"Yes, I do. It's a traditional Korean soup with rice cakes.",z:'Korean Culture'},
+ {k:'public art',e:'🏙️',ko:'공공 미술',a:"Yes, I do. It's outside for everyone.",z:'Art for Everyone'},
+ {k:'Puppy',e:'🐶',ko:'퍼피 (스페인 빌바오)',a:"Yes, I do. It's bigger than a house.",z:'Art for Everyone'},
+ {k:'Cloud Gate',e:'🫘',ko:'클라우드 게이트 (시카고)',a:"Yes, I do. It looks like a big bean.",z:'Art for Everyone'},
+ {k:'Cinco de Mayo',e:'💃',ko:'???',a:"No, I don't. I have no idea.",z:'Mystery Room',mys:true,tell:"It's a holiday in Mexico. It's on May 5th."},
+ {k:'Guanajuato',e:'🏘️',ko:'???',a:"No, I don't. I have no idea.",z:'Mystery Room',mys:true,tell:'Guanajuato is an old city in Mexico.'}
+];
+const app=$('#app');let G={team:''},tick=null;
+function shell(html){app.innerHTML='';app.appendChild(RB.topbar('🏯 Culture Guide','12과 문화 해설사 미션'));const d=document.createElement('div');d.innerHTML=html;app.appendChild(d);return d}
+const el=()=>(Date.now()-G.t0)/1000;
+function intro(){
+  shell(`<div class="center" style="gap:8px;margin:4px 0 18px"><div class="big-emoji float">🤖</div><h1 class="hero">Culture Guide Mission</h1>
+   <p class="sub">외국인 관광객 로봇 <b>Neo</b>가 한국 문화 박물관에 왔어요!<br>Neo가 "<b class="en">Do you know anything about ~?</b>" 하고 물으면 해설사가 되어 영어로 설명해 주세요.<br>모르는 것은 솔직하게 "<b class="en">No, I don't. I have no idea.</b>" 🙅</p></div>
+   <div class="card grid"><b style="font-size:20px">🎫 해설사 팀 이름</b><input class="txt" id="tn" maxlength="16" placeholder="예) 5모둠 K-Culture Guides" value="${esc(G.team)}">
+   <div class="help">전시실 12곳 · 전시물마다 ① 듣고 고르기 → ② 대답 문장 만들기 → ③ 소리 내어 말하기 · 스탬프를 모두 모으면 해설사 인증서 🏅</div>
+   <button class="btn big pink" id="go">🎫 박물관 입장!</button></div>`);
+  $('#go').onclick=()=>{G.team=$('#tn').value.trim()||'Guide Team';G.t0=Date.now();G.done=new Set();G.miss=0;
+    clearInterval(tick);tick=setInterval(()=>{const c=$('#clk');if(c)c.textContent='⏱️ '+fmtTime(el())},500);speak('Hello! I am Neo. Welcome to the museum!',0.9);museum()};
+}
+function museum(){
+  if(G.done.size===EX.length)return cert();
+  shell(`<div class="hud"><span class="pill">🎫 ${esc(G.team)}</span><span class="pill">🏅 스탬프 ${G.done.size}/${EX.length}</span><span style="flex:1"></span><span class="pill" id="clk">⏱️ ${fmtTime(el())}</span></div>
+   <div class="glass" style="margin-bottom:14px;font-weight:800">🗺️ 전시실을 골라 미션을 시작하세요! 순서는 자유예요.</div>
+   <div class="map">${EX.map((x,i)=>`<button class="ex ${G.done.has(i)?'done':''} ${x.mys&&!G.done.has(i)?'mys':''}" data-i="${i}"><span class="zone en">${x.z}</span><span class="e">${x.e}</span><b class="en">${x.mys&&!G.done.has(i)?'???':esc(x.k)}</b><small>${x.mys&&!G.done.has(i)?'미스터리 전시':esc(x.ko)}</small></button>`).join('')}</div>`);
+  document.querySelectorAll('.ex').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;if(G.done.has(i)){speak(EX[i].a.replace(/^(Yes, I do\. |No, I don't\. )/,''));return}sfx('flip');mission(i)});
+}
+function frame(i,step,inner){const x=EX[i];
+  shell(`<div class="hud"><button class="btn sm white" id="back">🗺️ 지도</button><span class="pill">${x.e} 전시실</span><span style="flex:1"></span><span class="pill" id="clk">⏱️ ${fmtTime(el())}</span></div>
+   <div class="room pop"><div class="steps">${['① 듣고 고르기','② 대답 만들기','③ 말하기'].map((s,k)=>`<span class="${k<step?'ok':k===step?'on':''}">${s}</span>`).join('')}</div>
+   <div class="visitor"><div class="av">🤖</div><div class="vb en"><small>Neo의 질문 <button class="btn sm purple" id="rp">🔊</button></small>Do you know anything about ${step===0?'______':esc(x.k)}?</div></div>${inner}</div>`);
+  $('#back').onclick=museum;$('#rp').onclick=()=>speak(`Do you know anything about ${x.k}?`);
+}
+function mission(i){
+  const x=EX[i];
+  // step 1: listen & pick
+  const opts=shuffle([x,...sample(EX.filter(o=>o!==x&&!o.mys),3)]);
+  frame(i,0,`<p style="font-weight:800;margin-bottom:10px">🎧 Neo가 무엇에 대해 물었나요? 잘 듣고 골라요!</p>
+    <div class="opt-grid">${opts.map((o,k)=>`<button class="opt c${k}" data-k="${esc(o.k)}"><span class="oe">${o.e}</span><span class="en" style="font-size:20px">${esc(o.k)}</span></button>`).join('')}</div>`);
+  speak(`Do you know anything about ${x.k}?`);
+  document.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+    if(b.dataset.k===x.k){sfx('ok');b.classList.add('right');setTimeout(()=>build(i),600)}else{sfx('bad');b.classList.add('wrong');b.disabled=true;G.miss++}});
+}
+function build(i){
+  const x=EX[i];const words=x.a.split(' ');let chips=words.map((w,k)=>({w,k,used:false}));
+  do{chips=shuffle(chips)}while(chips.every((c,k)=>c.k===k));let ans=[];
+  frame(i,1,`<div class="center" style="gap:4px"><div style="font-size:70px">${x.e}</div><div style="font-weight:800">${x.mys?'🤔 처음 보는 거예요! 모를 때는 뭐라고 말할까요?':'💡 '+esc(x.ko)+'에 대해 설명하는 대답을 만들어요'}</div></div>
+    <div class="answer en" id="an"></div><div class="tiles en" id="tl"></div>
+    <div class="row" style="justify-content:center;margin-top:14px"><button class="btn sm white" id="clr">↩️ 다시</button></div>`);
+  function draw(){
+    $('#an').innerHTML=ans.length?ans.map((c,j)=>`<button class="tile" data-j="${j}">${esc(c.w)}</button>`).join(''):'<span style="opacity:.5">여기에 대답이 만들어져요</span>';
+    $('#tl').innerHTML=chips.map(c=>`<button class="tile ${c.used?'used':''}" data-k="${c.k}">${esc(c.w)}</button>`).join('');
+    document.querySelectorAll('#tl .tile').forEach(b=>b.onclick=()=>{const c=chips.find(z=>z.k==b.dataset.k);if(c.used)return;c.used=true;ans.push(c);sfx('click');draw();check()});
+    document.querySelectorAll('#an .tile').forEach(b=>b.onclick=()=>{ans.splice(+b.dataset.j).forEach(c=>c.used=false);draw()});
+  }
+  function check(){if(ans.length<words.length)return;
+    if(ans.map(c=>c.w).join(' ')===x.a){sfx('ok');setTimeout(()=>say(i),500)}
+    else{sfx('bad');G.miss++;const r=document.querySelector('.room');r.classList.remove('shake');void r.offsetWidth;r.classList.add('shake');setTimeout(()=>{ans.forEach(c=>c.used=false);ans=[];draw()},450)}}
+  $('#clr').onclick=()=>{ans.forEach(c=>c.used=false);ans=[];draw()};draw();
+}
+function say(i){
+  const x=EX[i];
+  frame(i,2,`<div class="center" style="gap:6px"><div style="font-size:70px">${x.e}</div><div style="font-weight:800">📢 모둠이 다 같이 큰 소리로 Neo에게 말해 주세요!</div>
+    <div class="speak en">${esc(x.a)}</div>
+    ${x.mys?`<div class="vb en" style="flex:none;max-width:640px"><small>🤖 Neo의 설명</small>Oh, ${esc(x.k)}? ${esc(x.tell)}</div>`:x.tip?`<div class="help en">+ ${esc(x.tip)}</div>`:''}
+    <div class="row" style="justify-content:center;margin-top:10px"><button class="btn purple" id="hear">🔊 먼저 듣기</button><button class="btn big green" id="done">✅ 말했어요! 스탬프 받기</button></div></div>`);
+  $('#hear').onclick=()=>speak(x.a);
+  if(x.mys)setTimeout(()=>speak(`Oh, ${x.k}? ${x.tell}`),300);
+  $('#done').onclick=()=>{G.done.add(i);sfx('win');confetti(1000);toast(`🏅 ${x.mys?'Mystery':x.k} 스탬프 획득!`);setTimeout(museum,700)};
+}
+function cert(){
+  clearInterval(tick);const T=el();confetti(5000);sfx('win');speak('Thank you! You are a great culture guide!',0.9);
+  const lb=RB.board('rb_culture');lb.push({team:G.team,t:T,m:G.miss});lb.sort((a,b)=>a.t-b.t);RB.saveBoard('rb_culture',lb);
+  shell(`<div class="cert pop"><div style="font-size:70px">🏅</div><div class="en" style="font-size:20px;font-weight:900;color:#d9a700;letter-spacing:3px">CERTIFICATE</div>
+   <h1 style="font-size:clamp(30px,5vw,46px);font-weight:900;margin:6px 0">Korean Culture Guide</h1>
+   <div style="font-size:26px;font-weight:900;color:#ff5da2">🎫 ${esc(G.team)}</div>
+   <p style="margin:10px 0;font-size:18px">위 팀은 Neo에게 한국 문화와 공공 미술을 영어로 멋지게 소개하였기에<br>이 인증서를 드립니다.</p>
+   <div class="stamps">${EX.map(x=>x.e).join('')}</div>
+   <div class="en" style="font-size:56px;font-weight:900;color:#4a22c9;margin-top:6px">${fmtTime(T)}</div><div class="help">실수 ${G.miss}번</div>
+   <div class="help" style="margin-top:8px">${lb.slice(0,5).map((r,i)=>`${['🥇','🥈','🥉','4','5'][i]} ${esc(r.team)} ${fmtTime(r.t)}`).join(' · ')}</div>
+   <div class="row" style="justify-content:center;margin-top:14px"><button class="btn big pink" id="again">🔁 다시 하기</button><button class="btn white" id="rs">🗑️ 기록 지우기</button></div></div>`);
+  $('#again').onclick=intro;$('#rs').onclick=()=>{RB.saveBoard('rb_culture',[]);toast('기록을 지웠어요');intro()};
+}
+intro();
+</script></body></html>

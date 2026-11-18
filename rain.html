@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#ffd9ea">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="레인보우 영어">
+<title>🌧️ Word Rain - 영어 단어 소나기</title>
+<link rel="stylesheet" href="common.css">
+<style>
+body{background:radial-gradient(600px 460px at 8% 0%,#d6efff 0%,transparent 70%),radial-gradient(640px 500px at 100% 100%,#e7e1ff 0%,transparent 70%),#f1f9ff;background-attachment:fixed}
+.wrap{padding-bottom:10px}
+.hud{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.hud .pill{font-size:18px}
+.sky{position:relative;box-shadow:0 8px 0 #cfe6f7;height:max(200px,min(46dvh,calc(100dvh - 470px)));border-radius:24px;background:linear-gradient(180deg,#bfe6ff,#e9f7ff 80%);border:3px solid #cfe6f7;overflow:hidden}
+.sky::after{content:"";position:absolute;left:0;right:0;bottom:0;height:16px;background:linear-gradient(90deg,#2ee59d,#3ddcff);opacity:.8}
+.drop{position:absolute;top:0;transform:translateX(-50%);background:#fff;color:var(--ink);border-radius:16px;padding:6px 14px;font-weight:900;font-size:clamp(18px,2.8vw,26px);white-space:nowrap;box-shadow:0 5px 0 #0001;border:2px solid #e6eef8;display:flex;align-items:center;gap:6px}
+.drop .e{font-size:1.3em}
+.drop.gold{background:var(--yellow)}.drop.ice{background:#bff3ff}
+.drop .typed{color:var(--pink)}
+.drop.match{outline:4px solid var(--pink)}
+.drop.boom{animation:boom .3s forwards}@keyframes boom{to{transform:translateX(-50%) scale(1.6);opacity:0}}
+.buf{height:54px;margin:8px 0;border-radius:16px;background:#fff;border:3px solid #cfe6f7;color:var(--ink);display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900;letter-spacing:2px}
+.buf.bad{animation:shake .3s;background:#ffd6dc}
+.frozen .drop{filter:hue-rotate(160deg)}
+.stepper{display:flex;align-items:center;gap:14px}.stepper b{font-size:40px;min-width:60px;text-align:center}
+.mode{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mode button{border:3px solid transparent;border-radius:18px;padding:14px;background:#f3efff;font:inherit;font-weight:800;color:var(--ink);cursor:pointer;font-size:17px}
+.mode button.on{border-color:var(--pink);background:#fff0f7}
+table.lb{width:100%;border-collapse:collapse;font-size:18px}table.lb td{padding:8px;border-bottom:1px solid #eee}
+</style></head><body>
+<div class="wrap" id="app"></div>
+<script src="common.js"></script>
+<script>
+const {$,sfx,speak,shuffle,sample,pick,toast,confetti,getTheme,themePicker,lastTheme,esc,fmtTime}=RB;
+const app=$('#app');
+let G={theme:lastTheme(),mem:4,mode:'see',team:''},raf=null,clock=null;
+const TURN=60;
+function shell(html){app.innerHTML='';app.appendChild(RB.topbar('🌧️ Word Rain','영어 단어 소나기'));const d=document.createElement('div');d.innerHTML=html;app.appendChild(d);return d}
+function intro(){
+  shell(`<div class="center" style="gap:8px;margin:4px 0 16px"><div class="big-emoji float">🌧️</div><h1 class="hero">Word Rain</h1>
+   <p class="sub">하늘에서 영어 단어가 떨어져요! 땅에 닿기 전에 키보드로 쳐서 터뜨리세요.<br>모둠원이 <b>${TURN}초씩 릴레이</b>로 도전해서 모둠 점수를 모아요.</p></div>
+   <div class="card grid">
+    <div class="grid" style="grid-template-columns:1fr auto;align-items:center"><b style="font-size:20px">🌈 모둠 이름</b><span></span>
+     <input class="txt" id="tn" placeholder="예) 2모둠 Thunder" maxlength="16" value="${esc(G.team)}">
+     <div class="stepper"><button class="btn sm white" id="m">−</button><b id="nv">${G.mem}</b><button class="btn sm white" id="p">＋</button></div></div>
+    <b style="font-size:20px">🎚️ 난이도</b>
+    <div class="mode"><button data-m="see" class="${G.mode==='see'?'on':''}">👀 <b>보고 쓰기</b><br><small>영어 단어를 보고 그대로 쳐요</small></button>
+     <button data-m="mean" class="${G.mode==='mean'?'on':''}">🧠 <b>뜻 보고 쓰기</b><br><small>그림·뜻만 보고 영어로 써요 (첫 글자 힌트)</small></button></div>
+    <b style="font-size:20px">📚 단어 주제</b><div id="tp"></div>
+    <div class="help">⭐ 황금 단어 = 점수 2배 · ❄️ 얼음 단어 = 3초 동안 멈춤 · 없는 단어를 치면 입력이 지워져요</div>
+    <button class="btn big cyan" id="go">☔ 시작!</button></div>`);
+  $('#m').onclick=()=>{G.mem=Math.max(1,G.mem-1);$('#nv').textContent=G.mem};$('#p').onclick=()=>{G.mem=Math.min(8,G.mem+1);$('#nv').textContent=G.mem};
+  document.querySelectorAll('.mode button').forEach(b=>b.onclick=()=>{G.mode=b.dataset.m;document.querySelectorAll('.mode button').forEach(x=>x.classList.toggle('on',x===b));sfx('click')});
+  themePicker($('#tp'),id=>G.theme=id,G.theme);
+  $('#go').onclick=()=>{G.team=$('#tn').value.trim()||'Rain Team';G.t=getTheme(G.theme);G.scores=[];G.p=0;ready()};
+}
+function ready(){
+  shell(`<div class="center" style="min-height:65vh;gap:16px"><div class="pill">릴레이 ${G.p+1} / ${G.mem}</div><div class="big-emoji pop">🧑‍💻</div>
+   <h1 class="hero">Player ${G.p+1} Ready?</h1><p class="sub">${TURN}초 동안 최대한 많이 터뜨려요!</p><button class="btn big pink" id="go">▶ GO!</button></div>`);
+  $('#go').onclick=play;
+}
+function play(){
+  const H=['qwertyuiop','asdfghjkl','zxcvbnm'];
+  shell(`<div class="hud"><span class="pill">🧑‍💻 Player ${G.p+1}</span><span class="pill">⭐ <span id="sc">0</span>점</span><span class="pill" id="cb">🔥 0</span><span style="flex:1"></span><span class="pill" style="font-size:22px">⏱️ <span id="tm">${TURN}</span></span></div>
+   <div class="sky" id="sky"></div><div class="buf en" id="buf">&nbsp;</div>
+   <div class="kbd en" id="kb">${H.map((r,i)=>`<div class="kr">${i===2?'<button class="wide" data-k="clr">지우기</button>':''}${r.split('').map(c=>`<button data-k="${c}">${c}</button>`).join('')}${i===2?'<button class="wide" data-k="bk">⌫</button>':''}</div>`).join('')}
+   <div class="kr"><button class="wide" data-k="'" style="max-width:80px">'</button><button data-k=" " style="max-width:420px;flex:6">space</button></div></div>`);
+  const sky=$('#sky');let drops=[],buf='',score=0,combo=0,left=TURN,t0=performance.now(),last=t0,spawnAcc=1.2,frozen=0,running=true;
+  let bag=[];const next=()=>{if(!bag.length)bag=shuffle(G.t.words);return bag.pop()};
+  function label(d){const w=d.w.en;const typed=buf&&w.toLowerCase().startsWith(buf)?buf.length:0;
+    const main=G.mode==='see'?`<span class="typed">${esc(w.slice(0,typed))}</span>${esc(w.slice(typed))}`:(typed?`<span class="typed">${esc(w.slice(0,typed))}</span>`:`${esc(w[0])}…`)+`<small style="font-size:.6em;color:var(--muted)">${esc(d.w.ko)}</small>`;
+    return `${d.kind==='gold'?'⭐':d.kind==='ice'?'❄️':''}<span class="e">${d.w.e}</span>${main}`}
+  function spawn(){const w=next();if(drops.some(d=>d.w.en===w.en))return;const r=Math.random();const kind=r<.1?'gold':r<.17?'ice':'n';
+    const el=document.createElement('div');el.className='drop '+(kind==='n'?'':kind);sky.appendChild(el);
+    const d={w,kind,el,y:-10,x:12+Math.random()*76};el.style.left=d.x+'%';el.innerHTML=label(d);drops.push(d)}
+  function redraw(){drops.forEach(d=>{d.el.innerHTML=label(d);d.el.classList.toggle('match',!!buf&&d.w.en.toLowerCase().startsWith(buf))});$('#buf').innerHTML=buf?esc(buf):'&nbsp;'}
+  function hitCheck(){const d=drops.find(d=>d.w.en.toLowerCase()===buf);if(!d)return;
+    combo++;let pts=d.w.en.replace(/ /g,'').length*(d.kind==='gold'?2:1)+(combo>=5?3:0);score+=pts;sfx('pop');speak(d.w.en,1);
+    if(d.kind==='ice'){frozen=3;sky.classList.add('frozen');toast('❄️ FREEZE! 3초 정지')}
+    d.el.classList.add('boom');setTimeout(()=>d.el.remove(),300);drops=drops.filter(x=>x!==d);buf='';$('#sc').textContent=score;$('#cb').textContent='🔥 '+combo;redraw()}
+  function key(k){if(!running)return;sfx('click');
+    if(k==='bk')buf=buf.slice(0,-1);else if(k==='clr')buf='';else{const nb=buf+k;
+      if(drops.some(d=>d.w.en.toLowerCase().startsWith(nb)))buf=nb;else{sfx('bad');const b=$('#buf');b.classList.remove('bad');void b.offsetWidth;b.classList.add('bad');buf=''}}
+    redraw();hitCheck()}
+  document.querySelectorAll('#kb button').forEach(b=>b.addEventListener('pointerdown',e=>{e.preventDefault();key(b.dataset.k)}));
+  const onKey=e=>{if(/^[a-zA-Z' ]$/.test(e.key)){e.preventDefault();key(e.key.toLowerCase())}else if(e.key==='Backspace'){e.preventDefault();key('bk')}};
+  document.addEventListener('keydown',onKey);
+  function loop(now){if(!running)return;const dt=Math.min(.05,(now-last)/1000);last=now;const el=(now-t0)/1000;
+    const H=sky.clientHeight;const fall=H/Math.max(4.2,9-el*0.07);
+    if(frozen>0){frozen-=dt;if(frozen<=0)sky.classList.remove('frozen')}
+    else{spawnAcc+=dt;const gap=Math.max(1.1,2.4-el*0.025);if(spawnAcc>=gap&&drops.length<6){spawnAcc=0;spawn()}
+      drops.forEach(d=>{d.y+=fall*dt;d.el.style.transform=`translate(-50%,${d.y}px)`});
+      const miss=drops.filter(d=>d.y>H-50);if(miss.length){miss.forEach(d=>{d.el.remove()});drops=drops.filter(d=>d.y<=H-50);combo=0;$('#cb').textContent='🔥 0';sfx('bad');if(miss.some(d=>d.w.en.toLowerCase().startsWith(buf)))buf='';redraw()}}
+    raf=requestAnimationFrame(loop)}
+  raf=requestAnimationFrame(loop);
+  clearInterval(clock);clock=setInterval(()=>{left--;$('#tm').textContent=left;if(left<=5&&left>0)sfx('tick');if(left<=0){running=false;clearInterval(clock);cancelAnimationFrame(raf);document.removeEventListener('keydown',onKey);turnEnd(score)}},1000);
+}
+function turnEnd(score){
+  G.scores.push(score);sfx('win');
+  const last=G.p+1>=G.mem;
+  shell(`<div class="center" style="min-height:60vh;gap:14px"><div class="big-emoji pop">🎯</div><h1 class="hero">Player ${G.p+1}: ${score}점!</h1>
+   <p class="sub">모둠 누적 점수 <b>${G.scores.reduce((a,b)=>a+b,0)}점</b></p>
+   <button class="btn big ${last?'green':'pink'}" id="nx">${last?'🏁 최종 결과 보기':'▶ 다음 사람에게 넘기기'}</button></div>`);
+  $('#nx').onclick=()=>{G.p++;last?final():ready()};
+}
+function final(){
+  const tot=G.scores.reduce((a,b)=>a+b,0);confetti(3500);sfx('win');
+  const lb=RB.board('rb_rain');lb.push({team:G.team,s:tot,m:G.mode,n:G.mem});lb.sort((a,b)=>b.s/b.n-a.s/a.n);RB.saveBoard('rb_rain',lb);
+  shell(`<div class="card center pop" style="gap:10px;max-width:760px;margin:0 auto"><div class="big-emoji">🌈</div>
+   <h1 class="hero" style="color:#4a22c9;text-shadow:none">${esc(G.team)}</h1>
+   <div class="en" style="font-size:90px;font-weight:900;color:#ff5da2;line-height:1">${tot}</div><div class="help">모둠 총점 · 1인 평균 ${Math.round(tot/G.mem)}점 · ${G.mode==='see'?'보고 쓰기':'뜻 보고 쓰기'}</div>
+   <div class="row" style="justify-content:center">${G.scores.map((s,i)=>`<span class="pill" style="background:#f3efff;color:#4a22c9">P${i+1}: ${s}</span>`).join('')}</div>
+   <p style="font-weight:800">📺 선생님께 점수를 보여 주세요! (인원이 다르면 1인 평균으로 비교)</p>
+   <table class="lb">${lb.slice(0,5).map((r,i)=>`<tr><td>${['🥇','🥈','🥉','4','5'][i]}</td><td><b>${esc(r.team)}</b></td><td>${r.m==='see'?'👀':'🧠'}</td><td style="text-align:right"><b>${r.s}</b> <small>(평균 ${Math.round(r.s/r.n)})</small></td></tr>`).join('')}</table>
+   <div class="row" style="justify-content:center"><button class="btn big cyan" id="again">🔁 다시 하기</button><button class="btn white" id="rs">🗑️ 기록 지우기</button></div></div>`);
+  $('#again').onclick=intro;$('#rs').onclick=()=>{RB.saveBoard('rb_rain',[]);toast('기록을 지웠어요');intro()};
+}
+intro();
+</script></body></html>

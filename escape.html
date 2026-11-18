@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#ffd9ea">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="레인보우 영어">
+<title>🛸 Escape the UFO - 영어 방탈출</title>
+<link rel="stylesheet" href="common.css">
+<style>
+body{background:radial-gradient(600px 460px at 8% 0%,#d6f1ff 0%,transparent 70%),radial-gradient(640px 500px at 100% 100%,#e3fbef 0%,transparent 70%),#f3fbff;background-attachment:fixed}
+.hud{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.rooms{display:flex;gap:6px;flex:1;min-width:260px}
+.rooms div{flex:1;height:44px;border-radius:12px;background:#fff;box-shadow:0 3px 0 #dbe8f7;display:grid;place-items:center;font-size:22px;border:2px solid transparent}
+.rooms div.done{background:#c8f5e2}.rooms div.now{border-color:var(--cyan);background:#e0f7ff}
+.clock{font-size:26px;font-weight:900;background:#fff;border:2px solid #cfeefa;border-radius:14px;padding:6px 14px;font-variant-numeric:tabular-nums;color:#1b8fb3}
+.room{background:#fff;border:3px solid #cfeefa;border-radius:28px;padding:22px;box-shadow:0 8px 0 #d7ecf7,0 18px 40px rgba(60,140,200,.12)}
+.rtitle{display:flex;align-items:center;gap:12px;margin-bottom:6px}.rtitle .e{font-size:44px}.rtitle h2{font-size:30px;font-weight:600;color:#1b6f99}
+.mission{color:#3b5a7a;background:#f0faff;border-radius:14px;padding:10px 14px;font-size:17px;font-weight:600;margin-bottom:16px}
+.dots{display:flex;gap:6px;justify-content:center;margin-bottom:14px}.dots i{width:14px;height:14px;border-radius:50%;background:#dbe6f2}.dots i.on{background:var(--yellow)}
+.slots{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:18px 0}
+.slot{width:54px;height:64px;border-radius:12px;border:3px dashed #8fd8f2;background:#f7fcff;display:grid;place-items:center;font-size:32px;font-weight:900;cursor:pointer;text-transform:lowercase}
+.slot.f{border-style:solid;background:#fff;color:var(--ink)}
+.slot.sp{border:0;width:20px}
+.tiles{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.tile{min-width:58px;height:62px;padding:0 14px;border:0;border-radius:14px;background:var(--yellow);color:#3a2a00;font:inherit;font-weight:900;font-size:28px;box-shadow:0 5px 0 #d9a700;cursor:pointer}
+.tile.used{visibility:hidden}
+.tile.w{font-size:22px;background:#fff;color:var(--ink);box-shadow:0 5px 0 #d3e4f2;border:2px solid #e3eef8}
+.answer{min-height:76px;border-radius:16px;background:#f3faff;border:3px dashed #a9dff2;display:flex;flex-wrap:wrap;gap:8px;padding:10px;align-items:center;justify-content:center;margin:14px 0}
+.mem{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:720px;margin:0 auto}
+.mc{aspect-ratio:1.25;border-radius:16px;border:0;font:inherit;cursor:pointer;background:linear-gradient(135deg,#7cc6ff,#b39bff);color:#fff;font-size:34px;font-weight:900;box-shadow:0 5px 0 #9fb6e8;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px;line-height:1.1}
+.mc.open{background:#fff;color:var(--ink)}.mc.ok{background:#c8f5e2;color:#0b6b46;visibility:visible}
+.mc small{font-size:14px;font-weight:700}
+.mc .w{font-size:clamp(15px,2.4vw,22px)}
+.lock{display:grid;grid-template-columns:repeat(3,90px);gap:12px;justify-content:center}
+.lock button{height:76px;border:2px solid #e3eef8;border-radius:18px;font:inherit;font-size:34px;font-weight:900;background:#fff;color:var(--ink);box-shadow:0 6px 0 #d3e4f2;cursor:pointer}
+.codebox{display:flex;gap:10px;justify-content:center;margin:16px 0}
+.codebox div{width:62px;height:76px;border-radius:14px;background:#000;border:3px solid var(--cyan);display:grid;place-items:center;font-size:40px;font-weight:900;color:var(--green)}
+.clue{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.clue span{background:#fff6d1;border:3px solid #ffd23f;border-radius:14px;padding:8px 14px;font-weight:700;font-size:24px;color:#b67900;letter-spacing:1px}
+.alien{font-size:110px;line-height:1}
+.penalty{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);font-size:60px;font-weight:900;color:var(--red);text-shadow:0 4px 0 #fff;pointer-events:none;animation:pen 1s forwards;z-index:600}
+@keyframes pen{0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}100%{opacity:0;transform:translate(-50%,-90%)}}
+table.lb{width:100%;border-collapse:collapse;font-size:18px}table.lb td{padding:8px;border-bottom:1px solid #eee}
+</style></head><body>
+<div class="wrap" id="app"></div>
+<script src="common.js"></script>
+<script>
+const {$,sfx,speak,shuffle,sample,pick,toast,confetti,getTheme,themePicker,lastTheme,esc,fmtTime}=RB;
+const NUM=['zero','one','two','three','four','five','six','seven','eight','nine'];
+const ROOMS=[{e:'🎧',n:'Listening Room',k:'소리의 방'},{e:'🔤',n:'Spelling Room',k:'철자의 방'},{e:'🧩',n:'Sentence Room',k:'문장의 방'},{e:'🃏',n:'Memory Room',k:'기억의 방'},{e:'🕳️',n:'Missing Word Room',k:'빈칸의 방'}];
+const PEN=10;
+const app=$('#app');
+let G={theme:lastTheme(),team:''},tick=null;
+function shell(html){app.innerHTML='';app.appendChild(RB.topbar('🛸 Escape the UFO','영어 방탈출'));const d=document.createElement('div');d.innerHTML=html;app.appendChild(d);return d}
+function elapsed(){return (Date.now()-G.t0)/1000+G.pen}
+function penalty(sec){G.pen+=sec;G.wrong++;sfx('bad');const p=document.createElement('div');p.className='penalty';p.textContent='+'+sec+'초 ⏱️';document.body.appendChild(p);setTimeout(()=>p.remove(),1000);
+  const r=document.querySelector('.room');if(r){r.classList.remove('shake');void r.offsetWidth;r.classList.add('shake')}}
+
+function intro(){
+  shell(`<div class="center" style="gap:10px;margin:4px 0 18px"><div class="alien float">🛸</div><h1 class="hero">Escape the UFO!</h1>
+   <p class="sub">외계인 <b>Zorg 👾</b>가 영어를 배우고 싶어서 우리 모둠을 우주선에 가뒀어요!<br>5개의 방에서 영어 미션을 풀고 <b>비밀번호 5자리</b>를 모아 탈출하세요.</p></div>
+   <div class="card grid">
+     <b style="font-size:20px">🚀 모둠 이름</b><input class="txt" id="tn" placeholder="예) 1모둠 Rocket Team" maxlength="16" value="${esc(G.team)}">
+     <b style="font-size:20px">📚 단어 주제</b><div id="tp"></div>
+     <div class="help">⏱️ 틀리면 +${PEN}초! 가장 빨리 탈출한 모둠이 우승 🏆 · 소리가 나오니 볼륨을 켜 주세요 🔊</div>
+     <button class="btn big cyan" id="go">🔓 탈출 시작!</button></div>`);
+  themePicker($('#tp'),id=>G.theme=id,G.theme);
+  $('#go').onclick=()=>{G.team=$('#tn').value.trim()||'Team '+(1+Math.random()*9|0);start()};
+}
+function start(){
+  const t=getTheme(G.theme);G.t=t;G.t0=Date.now();G.pen=0;G.wrong=0;G.room=0;
+  G.code=Array.from({length:5},()=>Math.random()*10|0);
+  clearInterval(tick);tick=setInterval(()=>{const c=$('#clk');if(c)c.textContent='⏱️ '+fmtTime(elapsed())},500);
+  speak('Welcome to my UFO. Can you escape?',0.9);
+  runRoom();
+}
+function hud(){return `<div class="hud"><span class="pill">🚀 ${esc(G.team)}</span><div class="rooms">${ROOMS.map((r,i)=>`<div class="${i<G.room?'done':i===G.room?'now':''}">${i<G.room?'✅':r.e}</div>`).join('')}<div class="${G.room===5?'now':''}">🔐</div></div><span class="clock" id="clk">⏱️ ${fmtTime(elapsed())}</span></div>`}
+function roomShell(inner){const r=ROOMS[G.room];
+  shell(hud()+`<div class="room pop"><div class="rtitle"><span class="e">${r.e}</span><div><h2 class="en">Room ${G.room+1}. ${r.n}</h2><div style="opacity:.75;font-weight:700">${r.k}</div></div></div>${inner}</div>`)}
+function dots(n,k){return `<div class="dots">${Array.from({length:n},(_,i)=>`<i class="${i<k?'on':''}"></i>`).join('')}</div>`}
+function runRoom(){const f=[listening,spelling,ordering,memory,blanks][G.room];f?f():finalLock()}
+function roomClear(){
+  sfx('unlock');const d=G.code[G.room];
+  shell(hud()+`<div class="room center pop" style="gap:12px;min-height:50vh"><div class="big-emoji">🔑</div><h1 class="hero">Room ${G.room+1} Clear!</h1>
+   <p class="sub">비밀번호 조각 #${G.room+1}을 얻었어요. 영어 숫자를 잘 기억하세요!</p>
+   <div class="clue"><span class="en" style="font-size:40px">${NUM[d].toUpperCase()}</span></div>
+   <button class="btn sm purple" id="say">🔊 듣기</button><button class="btn big green" id="nx">다음 방으로 ▶</button></div>`);
+  speak(NUM[d]);$('#say').onclick=()=>speak(NUM[d]);
+  $('#nx').onclick=()=>{G.room++;runRoom()};
+}
+
+/* Room 1: listening */
+function listening(){
+  const qs=sample(G.t.words,4);let k=0;
+  function q(){
+    const a=qs[k],opts=shuffle([a,...sample(G.t.words.filter(w=>w.en!==a.en),3)]);
+    roomShell(`<p class="mission">🎧 Zorg가 말하는 단어를 듣고 알맞은 그림을 고르세요. (${k+1}/4)</p>${dots(4,k)}
+     <div class="center" style="margin-bottom:16px"><button class="btn big pink" id="play">🔊 다시 듣기</button></div>
+     <div class="opt-grid">${opts.map((o,i)=>`<button class="opt c${i}" data-w="${esc(o.en)}"><span class="oe">${o.e}</span><span style="font-size:17px">${esc(o.ko)}</span></button>`).join('')}</div>`);
+    speak(a.en);$('#play').onclick=()=>speak(a.en);
+    document.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+      if(b.dataset.w===a.en){sfx('ok');b.classList.add('right');setTimeout(()=>{k++;k<4?q():roomClear()},500)}
+      else{b.classList.add('wrong');b.disabled=true;penalty(PEN)}});
+  }q();
+}
+/* Room 2: spelling */
+function spelling(){
+  const pool=G.t.words.filter(w=>w.en.replace(/ /g,'').length<=11);
+  const qs=sample(pool.length>=3?pool:G.t.words,3);let k=0;
+  function q(){
+    const a=qs[k],letters=a.en.toLowerCase().split('');const need=letters.filter(c=>c!==' ');
+    const extra=sample('abcdefghijklmnoprstuwy'.split(''),2);
+    let tiles=shuffle([...need,...extra]).map((c,i)=>({c,i,used:false}));let fill=[];
+    roomShell(`<p class="mission">🔤 그림을 보고 영어 단어의 철자를 완성하세요. 가짜 글자 2개가 숨어 있어요! (${k+1}/3)</p>${dots(3,k)}
+     <div class="center"><div class="big-emoji">${a.e}</div><div style="font-size:22px;font-weight:800">${esc(a.ko)}</div></div>
+     <div class="slots en" id="sl"></div><div class="tiles en" id="tl"></div>
+     <div class="row" style="justify-content:center;margin-top:16px"><button class="btn sm white" id="hint">🔊 소리 힌트</button><button class="btn sm white" id="clr">↩️ 다시</button></div>`);
+    function draw(){
+      let fi=0;$('#sl').innerHTML=letters.map(c=>{if(c===' ')return '<div class="slot sp"></div>';const t=fill[fi];const h=`<div class="slot ${t?'f':''}" data-fi="${fi}">${t?t.c:''}</div>`;fi++;return h}).join('');
+      $('#tl').innerHTML=tiles.map(t=>`<button class="tile ${t.used?'used':''}" data-i="${t.i}">${t.c}</button>`).join('');
+      document.querySelectorAll('.tile').forEach(b=>b.onclick=()=>{const t=tiles.find(x=>x.i==b.dataset.i);if(t.used||fill.length>=need.length)return;t.used=true;fill.push(t);sfx('click');draw();check()});
+      document.querySelectorAll('.slot[data-fi]').forEach(s=>s.onclick=()=>{const i=+s.dataset.fi;if(!fill[i])return;fill.splice(i).forEach(t=>t.used=false);draw()});
+    }
+    function check(){if(fill.length<need.length)return;
+      if(fill.map(t=>t.c).join('')===need.join('')){sfx('ok');speak(a.en);setTimeout(()=>{k++;k<3?q():roomClear()},700)}
+      else{penalty(PEN);setTimeout(()=>{fill.forEach(t=>t.used=false);fill=[];draw()},450)}}
+    $('#hint').onclick=()=>speak(a.en,0.7);$('#clr').onclick=()=>{fill.forEach(t=>t.used=false);fill=[];draw()};
+    draw();
+  }q();
+}
+/* Room 3: sentence ordering */
+function ordering(){
+  const pool=G.t.sents.filter(s=>{const n=s.en.split(' ').length;return n>=3&&n<=9});
+  const qs=sample(pool.length>=3?pool:G.t.sents,Math.min(3,(pool.length>=3?pool:G.t.sents).length));let k=0;
+  if(!qs.length){roomClear();return}
+  function q(){
+    const a=qs[k],words=a.en.split(' ');let chips=words.map((w,i)=>({w,i,used:false}));
+    do{chips=shuffle(chips)}while(chips.length>2&&chips.every((c,i)=>c.i===i));
+    let ans=[];
+    roomShell(`<p class="mission">🧩 우리말 뜻에 맞게 단어 카드를 순서대로 눌러 문장을 만드세요. (${k+1}/${qs.length})</p>${dots(qs.length,k)}
+     <div class="center"><div style="font-size:24px;font-weight:800;background:#fff6d1;border:3px solid #ffe08a;border-radius:16px;padding:12px 18px">🇰🇷 ${esc(a.ko)}</div></div>
+     <div class="answer en" id="an"></div><div class="tiles en" id="tl"></div>
+     <div class="row" style="justify-content:center;margin-top:16px"><button class="btn sm white" id="clr">↩️ 다시</button></div>`);
+    function draw(){
+      $('#an').innerHTML=ans.length?ans.map((c,j)=>`<button class="tile w" data-j="${j}">${esc(c.w)}</button>`).join(''):'<span style="opacity:.5">여기에 문장이 만들어져요</span>';
+      $('#tl').innerHTML=chips.map(c=>`<button class="tile w ${c.used?'used':''}" data-i="${c.i}">${esc(c.w)}</button>`).join('');
+      document.querySelectorAll('#tl .tile').forEach(b=>b.onclick=()=>{const c=chips.find(x=>x.i==b.dataset.i);if(c.used)return;c.used=true;ans.push(c);sfx('click');draw();check()});
+      document.querySelectorAll('#an .tile').forEach(b=>b.onclick=()=>{const j=+b.dataset.j;ans.splice(j).forEach(c=>c.used=false);draw()});
+    }
+    function check(){if(ans.length<words.length)return;
+      if(ans.map(c=>c.w).join(' ')===a.en){sfx('ok');speak(a.en);setTimeout(()=>{k++;k<qs.length?q():roomClear()},1000)}
+      else{penalty(PEN);setTimeout(()=>{ans.forEach(c=>c.used=false);ans=[];draw()},450)}}
+    $('#clr').onclick=()=>{ans.forEach(c=>c.used=false);ans=[];draw()};draw();
+  }q();
+}
+/* Room 4: memory */
+function memory(){
+  const ws=sample(G.t.words,6);
+  let cards=shuffle([...ws.map((w,i)=>({p:i,t:'en',w})),...ws.map((w,i)=>({p:i,t:'pic',w}))]).map((c,i)=>({...c,id:i,open:false,ok:false}));
+  let sel=[],lock=false,found=0;
+  roomShell(`<p class="mission">🃏 카드를 뒤집어 <b>영어 단어</b>와 <b>그림</b> 짝을 모두 찾으세요!</p><div class="mem" id="mm"></div>`);
+  function draw(){
+    $('#mm').innerHTML=cards.map(c=>{const face=c.t==='en'?`<span class="w en">${esc(c.w.en)}</span>`:`<span>${c.w.e}</span><small>${esc(c.w.ko)}</small>`;
+      return `<button class="mc ${c.open?'open':''} ${c.ok?'ok':''}" data-id="${c.id}">${c.open||c.ok?face:'👾'}</button>`}).join('');
+    document.querySelectorAll('.mc').forEach(b=>b.onclick=()=>flip(+b.dataset.id));
+  }
+  function flip(id){const c=cards[id];if(lock||c.open||c.ok)return;c.open=true;sel.push(c);sfx('flip');if(c.t==='en')speak(c.w.en);draw();
+    if(sel.length===2){lock=true;const [a,b]=sel;
+      if(a.p===b.p){setTimeout(()=>{a.ok=b.ok=true;a.open=b.open=false;sel=[];lock=false;found++;sfx('ok');draw();if(found===6)setTimeout(roomClear,500)},400)}
+      else{setTimeout(()=>{a.open=b.open=false;sel=[];lock=false;draw()},900)}}}
+  draw();
+}
+/* Room 5: missing word */
+function blanks(){
+  const clean=w=>w.replace(/[^A-Za-z']/g,'');
+  const allTok=[...new Set(G.t.sents.flatMap(s=>s.en.split(' ').map(clean)).filter(w=>w.length>=3))];
+  const pool=G.t.sents.filter(s=>s.en.split(' ').slice(1).some(w=>clean(w).length>=3));
+  const qs=sample(pool,Math.min(3,pool.length));let k=0;
+  if(!qs.length){roomClear();return}
+  function q(){
+    const a=qs[k],toks=a.en.split(' ');const cand=toks.map((w,i)=>i).filter(i=>i>0&&clean(toks[i]).length>=3);
+    const bi=pick(cand),ansW=clean(toks[bi]);
+    const dist=sample(allTok.filter(w=>w.toLowerCase()!==ansW.toLowerCase()),2);
+    const opts=shuffle([ansW,...dist]);
+    const shown=toks.map((w,i)=>i===bi?w.replace(ansW,'<u style="display:inline-block;min-width:90px;border-bottom:4px solid var(--yellow)">&nbsp;</u>'):esc(w)).join(' ');
+    roomShell(`<p class="mission">🕳️ 빈칸에 들어갈 알맞은 단어를 고르세요. (${k+1}/${qs.length})</p>${dots(qs.length,k)}
+     <div class="center" style="gap:8px;margin-bottom:18px"><div class="en" style="font-size:clamp(24px,4vw,38px);font-weight:900">${shown}</div><div style="opacity:.8;font-size:18px">🇰🇷 ${esc(a.ko)}</div></div>
+     <div class="opt-grid" style="grid-template-columns:repeat(3,1fr)">${opts.map((o,i)=>`<button class="opt c${i} en" data-w="${esc(o)}">${esc(o)}</button>`).join('')}</div>`);
+    document.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+      if(b.dataset.w===ansW){sfx('ok');b.classList.add('right');speak(a.en);setTimeout(()=>{k++;k<qs.length?q():roomClear()},1200)}
+      else{b.classList.add('wrong');b.disabled=true;penalty(PEN)}});
+  }q();
+}
+/* Final lock */
+function finalLock(){
+  let ent=[];
+  shell(hud()+`<div class="room center pop" style="gap:10px"><div class="rtitle"><span class="e">🔐</span><h2 class="en">Final Door</h2></div>
+   <p class="mission">모은 영어 숫자를 <b>순서대로 숫자</b>로 입력하면 탈출! (틀리면 +15초)</p>
+   <div class="clue en">${G.code.map(d=>`<span>${NUM[d].toUpperCase()}</span>`).join('')}</div>
+   <div class="codebox" id="cb"></div>
+   <div class="lock">${[1,2,3,4,5,6,7,8,9,'⌫',0,'✔'].map(x=>`<button data-k="${x}">${x}</button>`).join('')}</div></div>`);
+  function draw(){$('#cb').innerHTML=Array.from({length:5},(_,i)=>`<div>${ent[i]??''}</div>`).join('')}
+  document.querySelectorAll('.lock button').forEach(b=>b.onclick=()=>{const k=b.dataset.k;sfx('click');
+    if(k==='⌫')ent.pop();else if(k==='✔'){if(ent.join('')===G.code.join(''))return escaped();penalty(15);ent=[]}else if(ent.length<5)ent.push(+k);
+    draw();if(ent.length===5&&ent.join('')===G.code.join(''))escaped()});
+  draw();
+}
+function escaped(){
+  clearInterval(tick);const T=elapsed();sfx('win');confetti(4000);speak('Congratulations! You escaped!',0.9);
+  const lb=RB.board('rb_escape');lb.push({team:G.team,t:T,theme:G.t.ko,w:G.wrong});lb.sort((a,b)=>a.t-b.t);RB.saveBoard('rb_escape',lb);
+  const stars=G.wrong<=1?'⭐⭐⭐':G.wrong<=4?'⭐⭐':'⭐';
+  shell(`<div class="card center pop" style="gap:12px;max-width:760px;margin:0 auto">
+   <div class="big-emoji">🌍</div><h1 class="hero" style="color:#4a22c9;text-shadow:none">ESCAPED!</h1>
+   <div style="font-size:22px;font-weight:800">🚀 ${esc(G.team)}</div>
+   <div class="en" style="font-size:clamp(60px,12vw,110px);font-weight:900;color:#ff5da2;line-height:1">${fmtTime(T)}</div>
+   <div style="font-size:36px">${stars}</div><div class="help">실수 ${G.wrong}번 (벌점 ${Math.round(G.pen)}초 포함) · 주제: ${esc(G.t.ko)}</div>
+   <p style="font-weight:800">📺 선생님께 기록을 보여 주세요!</p>
+   <table class="lb">${lb.slice(0,5).map((r,i)=>`<tr><td>${['🥇','🥈','🥉','4','5'][i]}</td><td><b>${esc(r.team)}</b></td><td>${esc(r.theme)}</td><td style="text-align:right"><b>${fmtTime(r.t)}</b></td></tr>`).join('')}</table>
+   <div class="row" style="justify-content:center"><button class="btn big cyan" id="again">🔁 다시 도전</button><button class="btn white" id="rs">🗑️ 기록 지우기</button></div></div>`);
+  $('#again').onclick=intro;$('#rs').onclick=()=>{RB.saveBoard('rb_escape',[]);toast('기록을 지웠어요');intro()};
+}
+intro();
+</script></body></html>

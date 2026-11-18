@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#ffd9ea">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="레인보우 영어">
+<title>🤔 Think So? - 11과 의견 스와이프</title>
+<link rel="stylesheet" href="common.css">
+<style>
+body{background:radial-gradient(600px 460px at 8% 0%,#fff0c9 0%,transparent 70%),radial-gradient(640px 500px at 100% 100%,#ffe0ec 0%,transparent 70%),#fffbf2;background-attachment:fixed}
+.hud{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.hud .pill{font-size:18px}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:center}
+@media (max-width:820px){.stage{grid-template-columns:1fr}}
+.scard{position:relative;border-radius:30px;aspect-ratio:1/1.05;max-height:58dvh;margin:0 auto;width:100%;max-width:440px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  box-shadow:0 12px 0 rgba(0,0,0,.08),0 24px 50px rgba(120,90,200,.18);border:5px solid #fff;touch-action:none;transition:transform .25s;overflow:hidden}
+.scard .obj{font-size:clamp(110px,18vw,170px);line-height:1;filter:drop-shadow(0 8px 0 #0003)}
+.scard .cue{position:absolute;top:16px;right:18px;font-size:52px;background:#fff9;border-radius:20px;padding:4px 10px}
+.scard .nm{margin-top:10px;font-size:26px;font-weight:900;background:#0004;color:#fff;border-radius:999px;padding:6px 18px}
+.scard .price{position:absolute;top:18px;left:18px;font-size:26px;font-weight:900;background:#fff;color:var(--ink);border-radius:12px;padding:6px 12px;transform:rotate(-8deg)}
+.scard .stamp{position:absolute;inset:auto;font-size:44px;font-weight:900;border:6px solid;border-radius:16px;padding:6px 16px;transform:rotate(-14deg);opacity:0;transition:opacity .1s}
+.scard .stamp.l{left:20px;top:40%;color:var(--red);border-color:var(--red)}.scard .stamp.r{right:20px;top:40%;color:#16a86f;border-color:#16a86f;transform:rotate(14deg)}
+.bg-dark{background:linear-gradient(160deg,#0e1030,#2b2f63)}.bg-bright{background:linear-gradient(160deg,#fff6b0,#ffd23f)}
+.bg-soft{background:linear-gradient(160deg,#ffe3f1,#ffc2dd)}.bg-hard{background:linear-gradient(160deg,#c9ccd6,#8a8fa3)}
+.bg-safe{background:linear-gradient(160deg,#c9ffe5,#2ee59d)}.bg-dangerous{background:repeating-linear-gradient(45deg,#ffcf3a 0 28px,#2a2a2a 28px 56px)}
+.bg-boring{background:linear-gradient(160deg,#d7d7d7,#a9a9a9)}.bg-interesting{background:linear-gradient(160deg,#8b5cff,#ff5da2)}
+.bg-cheap{background:linear-gradient(160deg,#d6f7ff,#3ddcff)}.bg-expensive{background:linear-gradient(160deg,#fff1c2,#e0a800)}
+.bubble{background:#fff;color:var(--ink);border-radius:26px;padding:20px 22px;border:3px solid var(--line);box-shadow:0 8px 0 #eadffc;position:relative;font-size:clamp(22px,3vw,32px);font-weight:900;line-height:1.35}
+.bubble small{display:block;font-size:15px;color:var(--muted);font-weight:700;margin-bottom:6px}
+.bubble .hl{color:#ff5da2}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.btns .btn{font-size:clamp(17px,2.2vw,22px);min-height:80px;line-height:1.2}
+.say{margin-top:14px;background:#fff;border:3px dashed #d9ccf7;color:var(--ink);border-radius:18px;padding:14px;font-size:clamp(20px,2.8vw,28px);font-weight:900;text-align:center;min-height:66px}
+.stepper{display:flex;align-items:center;gap:14px}.stepper b{font-size:40px;min-width:60px;text-align:center}
+table.lb{width:100%;border-collapse:collapse;font-size:18px}table.lb td{padding:8px;border-bottom:1px solid #eee}
+</style></head><body>
+<div class="wrap" id="app"></div>
+<script src="common.js"></script>
+<script>
+const {$,sfx,speak,shuffle,sample,pick,toast,confetti,esc,fmtTime}=RB;
+const OPP={dark:'bright',bright:'dark',soft:'hard',hard:'soft',safe:'dangerous',dangerous:'safe',boring:'interesting',interesting:'boring',cheap:'expensive',expensive:'cheap'};
+const KO={dark:'어두운',bright:'밝은',soft:'부드러운',hard:'딱딱한',safe:'안전한',dangerous:'위험한',boring:'지루한',interesting:'흥미로운',cheap:'싼',expensive:'비싼'};
+const CUE={dark:'🌑',bright:'☀️',soft:'☁️',hard:'🔨',safe:'✅',dangerous:'⚠️',boring:'🥱',interesting:'🤩',cheap:'',expensive:''};
+const SC=[
+ ['The sky','🌧️','dark','하늘'],['The sky','🌞','bright','하늘'],['This room','🕯️','dark','방'],['This room','💡','bright','방'],['This street','🌃','dark','거리'],
+ ['This cake','🍰','soft','케이크'],['This bread','🍞','soft','빵'],['This pillow','🛏️','soft','베개'],['This candy','🍬','hard','사탕'],['This rock','🪨','hard','바위'],
+ ['This ride','🎠','safe','놀이기구'],['This ride','🎢','dangerous','놀이기구'],['This sport','🏂','dangerous','운동'],['This sport','🧗','dangerous','운동'],['This sport','🏓','safe','운동'],
+ ['This board game','🎲','boring','보드게임'],['This board game','🧩','interesting','보드게임'],['This movie','🎬','interesting','영화'],['This book','📕','boring','책'],['This musical','🎭','interesting','뮤지컬'],
+ ['This skirt','👗','cheap','치마','₩2,000'],['This T-shirt','👕','cheap','티셔츠','₩3,000'],['This bag','👜','expensive','가방','₩900,000'],['This watch','⌚','expensive','시계','₩500,000']
+].map(([s,e,a,k,p])=>({s,e,a,k,p}));
+const N=12;
+const app=$('#app');
+let G={team:''};
+function shell(html){app.innerHTML='';app.appendChild(RB.topbar('🤔 Think So?','11과 의견 말하기'));const d=document.createElement('div');d.innerHTML=html;app.appendChild(d);return d}
+function intro(){
+  shell(`<div class="center" style="gap:8px;margin:4px 0 18px"><div class="big-emoji float">🤔</div><h1 class="hero">Think So?</h1>
+   <p class="sub">친구가 "<b class="en">This cake looks soft. What do you think?</b>" 하고 물어요.<br>그림을 보고 맞으면 👍 <b class="en">I think so, too.</b> 아니면 👎 <b class="en">I don't think so.</b><br>카드를 <b>오른쪽/왼쪽으로 밀거나</b> 버튼을 눌러요. 대답은 꼭 소리 내어 말하기! 📢</p></div>
+   <div class="card grid"><b style="font-size:20px">🙋 모둠 이름</b><input class="txt" id="tn" maxlength="16" placeholder="예) 4모둠 Bright Stars" value="${esc(G.team)}">
+   <div class="help">카드 ${N}장 · 빨리 맞힐수록 보너스 · 연속 정답 콤보 🔥 · TV에 띄워서 반 전체 퀴즈로 해도 좋아요</div>
+   <button class="btn big pink" id="go">👍 시작!</button></div>`);
+  $('#go').onclick=()=>{G.team=$('#tn').value.trim()||'Think Team';start()};
+}
+function start(){G.deck=sample(SC,N);G.i=0;G.score=0;G.combo=0;G.ok=0;G.t0=Date.now();next()}
+function next(){
+  if(G.i>=N)return finish();
+  const c=G.deck[G.i];const truth=Math.random()<.5;const shown=truth?c.a:OPP[c.a];G.cur={c,truth,shown,t:Date.now(),done:false};
+  const line=`${c.s} looks ${shown}. What do you think?`;
+  shell(`<div class="hud"><span class="pill">🙋 ${esc(G.team)}</span><span class="pill">🃏 ${G.i+1}/${N}</span><span class="pill">⭐ ${G.score}</span><span class="pill">${G.combo>=2?'🔥 '+G.combo+' COMBO':'🔥 0'}</span></div>
+   <div class="stage"><div class="scard bg-${c.a} pop" id="card">${c.p?`<div class="price">${c.p}</div>`:''}${CUE[c.a]?`<div class="cue">${CUE[c.a]}</div>`:''}<div class="obj">${c.e}</div><div class="nm">${esc(c.k)}</div>
+     <div class="stamp l en">NO!</div><div class="stamp r en">SO TOO!</div></div>
+    <div><div class="bubble en"><small>🧒 친구의 질문 <button class="btn sm purple" id="rp" style="margin-left:6px">🔊</button></small>${esc(c.s)} looks <span class="hl">${shown}</span>.<br>What do you think?</div>
+     <div class="btns" id="bt"><button class="btn red" id="no">👎 I don't<br>think so.</button><button class="btn green" id="yes">👍 I think<br>so, too.</button></div>
+     <div class="say en" id="say"><span style="opacity:.6;font-size:16px">⬅️ 밀기: I don't think so. / 밀기 ➡️: I think so, too.</span></div></div></div>`);
+  speak(line);$('#rp').onclick=()=>speak(line);
+  $('#yes').onclick=()=>answer(true);$('#no').onclick=()=>answer(false);
+  swipe($('#card'));
+}
+function swipe(el){let x0=null,dx=0;
+  el.addEventListener('pointerdown',e=>{if(G.cur.done)return;x0=e.clientX;el.setPointerCapture(e.pointerId);el.style.transition='none'});
+  el.addEventListener('pointermove',e=>{if(x0===null)return;dx=e.clientX-x0;el.style.transform=`translateX(${dx}px) rotate(${dx/18}deg)`;
+    el.querySelector('.stamp.r').style.opacity=Math.max(0,dx/120);el.querySelector('.stamp.l').style.opacity=Math.max(0,-dx/120)});
+  const up=()=>{if(x0===null)return;el.style.transition='';x0=null;if(Math.abs(dx)>110){answer(dx>0)}else{el.style.transform='';el.querySelectorAll('.stamp').forEach(s=>s.style.opacity=0)}dx=0};
+  el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);
+}
+function fly(dir){const el=$('#card');el.style.transform=`translateX(${dir*120}%) rotate(${dir*25}deg)`;el.style.opacity='.0';el.style.transition='transform .45s, opacity .45s'}
+function answer(agree){
+  const C=G.cur;if(C.done)return;C.done=true;
+  const sec=(Date.now()-C.t)/1000;
+  if(agree===C.truth){
+    if(agree){gain(sec);sfx('ok');fly(1);showSay(`I think so, too.`,true);setTimeout(()=>{G.i++;next()},1600)}
+    else{sfx('ok');fly(-1);step2(sec)}
+  }else{
+    G.combo=0;sfx('bad');fly(agree?1:-1);
+    const right=C.truth?`I think so, too.`:`I don't think so. I think it looks ${C.c.a}.`;
+    showSay(`❌ 정답: ${right}`,false);setTimeout(()=>{G.i++;next()},2600);
+  }
+}
+function step2(sec){
+  const C=G.cur;const opts=shuffle([C.c.a,...sample(Object.keys(OPP).filter(a=>a!==C.c.a&&a!==C.shown),2)]);
+  $('#bt').innerHTML=`<div style="grid-column:1/-1;font-weight:900;font-size:22px" class="en">I don't think so. I think it looks ___.</div>`+opts.map((o,i)=>`<button class="opt c${i} en" data-a="${o}" style="min-height:76px;flex-direction:column;gap:2px;font-size:clamp(17px,2.2vw,22px)">${o}<small style="font-size:14px;opacity:.85">${KO[o]}</small></button>`).join('');
+  $('#bt').style.gridTemplateColumns='repeat(3,1fr)';
+  $('#say').innerHTML='<span style="opacity:.7;font-size:17px">👀 그림이 실제로 어때 보이나요?</span>';
+  let done=false;
+  document.querySelectorAll('#bt .opt').forEach(b=>b.onclick=()=>{if(done)return;done=true;
+    if(b.dataset.a===C.c.a){gain(sec+1);sfx('ok');showSay(`I don't think so. I think it looks ${C.c.a}.`,true)}
+    else{G.combo=0;sfx('bad');showSay(`❌ I think it looks ${C.c.a}.`,false)}
+    setTimeout(()=>{G.i++;next()},2200)});
+}
+function gain(sec){G.combo++;G.ok++;const bonus=Math.max(0,Math.round(10-sec));G.score+=10+bonus+(G.combo>=3?5:0);}
+function showSay(t,ok){const s=$('#say');s.innerHTML=`${ok?'📢 ':''}${esc(t)}`;s.style.borderColor=ok?'#2ee59d':'#ff4d5e';s.style.background=ok?'#e2fbef':'#ffe5e8';speak(t.replace('❌ 정답: ','').replace('❌ ',''))}
+function finish(){
+  const T=(Date.now()-G.t0)/1000;confetti(3500);sfx('win');
+  const lb=RB.board('rb_thinkso');lb.push({team:G.team,s:G.score});lb.sort((a,b)=>b.s-a.s);RB.saveBoard('rb_thinkso',lb);
+  const stars=G.ok>=11?'⭐⭐⭐':G.ok>=8?'⭐⭐':'⭐';
+  shell(`<div class="card center pop" style="gap:10px;max-width:760px;margin:0 auto"><div class="big-emoji">🏅</div>
+   <h1 class="hero" style="color:#4a22c9;text-shadow:none">${esc(G.team)}</h1>
+   <div class="en" style="font-size:90px;font-weight:900;color:#ff5da2;line-height:1">${G.score}</div><div style="font-size:36px">${stars}</div>
+   <div class="help">정답 ${G.ok}/${N} · 걸린 시간 ${fmtTime(T)}</div>
+   <p style="font-weight:800">📺 선생님께 점수를 보여 주세요!</p>
+   <table class="lb">${lb.slice(0,5).map((r,i)=>`<tr><td>${['🥇','🥈','🥉','4','5'][i]}</td><td><b>${esc(r.team)}</b></td><td style="text-align:right"><b>${r.s}</b></td></tr>`).join('')}</table>
+   <div class="row" style="justify-content:center"><button class="btn big pink" id="again">🔁 다시 하기</button><button class="btn white" id="rs">🗑️ 기록 지우기</button></div></div>`);
+  $('#again').onclick=intro;$('#rs').onclick=()=>{RB.saveBoard('rb_thinkso',[]);toast('기록을 지웠어요');intro()};
+}
+intro();
+</script></body></html>
